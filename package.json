@@ -1,0 +1,28 @@
+{
+  "name": "dexter-admin",
+  "version": "1.0.0",
+  "description": "SaaS SuperAdmin Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "author": "Ronal",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.dexterpv.admin",
+    "productName": "DexterPV SuperAdmin",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    }
+  }
+}

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DexterPV - Panel de Control Premium</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf para reportes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+    <!-- PANTALLA CANDADO DE SUSCRIPCIÓN VENCIDA (BLOQUEO PREMIUM) -->
+    <div id="locked-subscription" class="locked-screen">
+        <div class="locked-card glass-panel">
+            <div class="locked-icon-pulse">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="locked-title">Suscripción Suspendida</div>
+            <div id="lockedCommerceName" style="color:var(--primary-emerald); font-weight:700; font-size:15px; margin-bottom:16px;">COMERCIO: REFACCIONARIA AXEL</div>
+            <div class="locked-text">
+                Tu licencia de uso para **DexterPV** ha expirado o se encuentra suspendida temporalmente por falta de pago. Por favor contacta al proveedor o realiza tu pago para restaurar tu acceso instantáneamente.
+            </div>
+            <button id="lockedLogoutBtn" class="btn btn-danger">
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR TOAST NOTIFICACIONES -->
+    <div id="toastContainer"></div>
+
+    <div class="app-layout">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN (BARRA LATERAL) -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-wrapper">
+                    <i class="fa-solid fa-layer-group brand-icon"></i>
+                    <span class="brand-title brand-title-sidebar">DEXTERPV</span>
+                </div>
+            </div>
+
+            <!-- PERFIL DE USUARIO LOGUEADO -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar" id="userInitialSidebar">US</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameSidebar">Cargando...</div>
+                    <div class="profile-role" id="userRoleSidebar">Administrador</div>
+                    <div id="userTenantIdSidebar" style="font-size:11px; color:var(--text-muted); margin-top:2px;"></div>
+                </div>
+            </div>
+
+            <!-- GRUPOS DE MENÚS CON FILTRADO RLS -->
+            <div class="sidebar-menu-wrapper">
+                
+                <!-- OPERACIONES ESTÁNDAR (PUNTO DE VENTA & INVENTARIO) -->
+                <div class="menu-group" id="standard-menu-group">
+                    <div class="menu-group-title">Operaciones</div>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" class="active" data-section="inicio">
+                                <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="ventas">
+                                <i class="fa-solid fa-cash-register"></i> <span>Punto de Venta</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="inventario">
+                                <i class="fa-solid fa-boxes-stacked"></i> <span>Inventario</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="agregar">
+                                <i class="fa-solid fa-circle-plus"></i> <span>Agregar Producto</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="gastos">
+                                <i class="fa-solid fa-receipt"></i> <span>Gastos & OPEX</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="reportes">
+                                <i class="fa-solid fa-file-pdf"></i> <span>Reportes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="finanzas">
+                                <i class="fa-solid fa-scale-balanced"></i> <span>Finanzas</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="#" data-section="perfil">
+                                <i class="fa-solid fa-user-circle"></i> <span>Perfil y Suscripción</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- CONSOLA EXCLUSIVA DE SUPERADMIN (MASTER CONTROL DE INQUILINOS) -->
+                <div class="menu-group" id="superadmin-menu-group" style="display: none;">
+                    <div class="menu-group-title">SaaS Mora Console</div>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-section="superadmin-panel">
+                                <i class="fa-solid fa-tower-control-panel"></i> <span>Consola Clientes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="superadmin-agregar">
+                                <i class="fa-solid fa-shop-medical"></i> <span>Agregar Cliente</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="superadmin-personal">
+                                <i class="fa-solid fa-users-gear"></i> <span>Gestión de Personal</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary btn-block btn-small" id="logoutBtn" style="background: rgba(239, 68, 68, 0.05); color: #ef4444; border-color: rgba(239, 68, 68, 0.15);">
+                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL DE CONTENIDO -->
+        <main class="content-area">
+            
+            <!-- HEADER / TOP BAR DE ACCIONES RÁPIDAS -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" id="menuToggleBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="top-bar-title" id="sectionTitle">Dashboard</h1>
+                </div>
+
+                <div class="top-bar-right">
+                    <!-- Toggle Privacidad de Dinero -->
+                    <button class="btn btn-secondary btn-small" id="privacyToggleBtn" title="Ocultar cifras financieras">
+                        <span id="privacyIcon">👁️</span> Privacidad
+                    </button>
+                </div>
+            </header>
+
+            <div class="main-content">
+
+                <!-- ==================================================
+                     SECCIÓN: INICIO (DASHBOARD GENERAL)
+                     ================================================== -->
+                <section id="inicio" class="content-section active">
+                    
+                    <!-- Tarjetas de métricas -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Ventas de Hoy</div>
+                                <div class="metric-value" id="statVentasHoy">$0.00</div>
+                            </div>
+                            <div class="metric-icon-box emerald">
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </div>
+                        </div>
+
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Ganancias Netas</div>
+                                <div class="metric-value" id="statGanancias">$0.00</div>
+                            </div>
+                            <div class="metric-icon-box blue">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                        </div>
+
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Valor Inventario (Costo)</div>
+                                <div class="metric-value" id="statInventarioTotal">$0.00</div>
+                            </div>
+                            <div class="metric-icon-box warning">
+                                <i class="fa-solid fa-warehouse"></i>
+                            </div>
+                        </div>
+
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Tipos de Productos</div>
+                                <div class="metric-value" id="statTotalProductos">0</div>
+                            </div>
+                            <div class="metric-icon-box emerald">
+                                <i class="fa-solid fa-boxes-packing"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfica de Ventas (Últimos 7 Días) -->
+                    <div class="glass-panel" style="padding: 24px; margin-top: 24px;">
+                        <h3 style="margin-bottom: 20px; font-weight: 700; color: var(--text-primary);">
+                            <i class="fa-solid fa-chart-line"></i> Resumen de Ventas (Últimos 7 Días)
+                        </h3>
+                        <div style="width: 100%; height: 300px; position: relative;">
+                            <canvas id="ventasChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Buscador e historial de ventas -->
+                    <div class="glass-panel" style="padding: 24px; margin-top: 24px;">
+                        <h3 style="margin-bottom: 20px; font-weight: 700; color: white;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Historial de Ventas Diarias
+                        </h3>
+                        <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+                            <input class="form-input" type="date" id="fechaHistorial" style="max-width: 250px; padding: 10px 16px 10px 16px;">
+                            <button class="btn btn-primary" id="btnBuscarHistorial">
+                                <i class="fa-solid fa-magnifying-glass"></i> Consultar Ventas
+                            </button>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha / Hora</th>
+                                        <th>Código</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unitario</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ventasTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                            Selecciona una fecha para ver el historial
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: PUNTO DE VENTA (POS)
+                     ================================================== -->
+                <section id="ventas" class="content-section">
+                    <div class="pos-layout">
+                        
+                        <!-- Catálogo de productos a la izquierda -->
+                        <div class="pos-catalog-panel">
+                            <input type="text" id="buscarProducto" class="search-bar-pos" placeholder="🔍 Escribe el nombre o código de barra para buscar...">
+                            
+                            <!-- Semillas de categorías generadas dinámicamente -->
+                            <div class="categorias-tabs" id="categoriasTabsVenta">
+                                <button class="tab-btn active" data-categoria-venta="TODAS">TODAS</button>
+                                <!-- Categorías inyectadas por app.js -->
+                            </div>
+
+                            <div class="productos-grid" id="productosGrid">
+                                <!-- Renderizado dinámico de productos -->
+                            </div>
+                        </div>
+
+                        <!-- Carrito de compras a la derecha -->
+                        <div class="pos-cart-panel glass-panel">
+                            <div class="cart-header">
+                                <h3 style="font-weight: 700;"><i class="fa-solid fa-cart-shopping"></i> Carrito</h3>
+                                <button class="btn btn-secondary btn-small" id="limpiarCarrito" style="color:var(--danger);">Vaciar</button>
+                            </div>
+                            
+                            <div class="cart-items-list" id="carritoItems">
+                                <div style="text-align:center; padding: 40px 20px; color:var(--text-muted);">
+                                    El carrito está vacío
+                                </div>
+                            </div>
+
+                            <div class="cart-footer">
+                                <div class="cart-summary-row">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">$0.00</span>
+                                </div>
+                                <div class="cart-summary-row total">
+                                    <span>Total</span>
+                                    <span id="total">$0.00</span>
+                                </div>
+                                <button class="btn btn-primary btn-block" id="procesarVenta" style="margin-top: 16px; padding: 14px;">
+                                    <i class="fa-solid fa-receipt"></i> Procesar Venta Directa
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: INVENTARIO (LISTADO & MATRIZ)
+                     ================================================== -->
+                <section id="inventario" class="content-section">
+                    
+                    <!-- Stats del Inventario -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="metric-card glass-panel" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div class="metric-title">TOTAL ARTÍCULOS</div>
+                                <div class="metric-value" id="statInventarioArticulos">0</div>
+                            </div>
+                            <div class="metric-icon-box" style="background:var(--primary-glass); color:var(--primary-light);">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-panel" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div class="metric-title">VALOR TOTAL (COSTO)</div>
+                                <div class="metric-value" id="statInventarioValor">$0.00</div>
+                            </div>
+                            <div class="metric-icon-box emerald" style="background:var(--emerald-glass); color:var(--primary-emerald);">
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="metric-card glass-panel" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div class="metric-title">PRODUCTOS SIN STOCK</div>
+                                <div class="metric-value" id="statInventarioSinStock" style="color:var(--danger);">0</div>
+                            </div>
+                            <div class="metric-icon-box" style="background:var(--danger-glass); color:var(--danger);">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel" style="padding: 24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+                            <h3 style="font-weight:700; color:white;"><i class="fa-solid fa-boxes-stacked"></i> Inventario de Productos</h3>
+                            <button class="btn btn-secondary btn-small" id="refreshInventario">
+                                <i class="fa-solid fa-rotate"></i> Actualizar
+                            </button>
+                        </div>
+                        
+                        <!-- Buscador y Categorías de Inventario -->
+                        <div style="margin-bottom:20px;">
+                            <input type="text" id="buscarInventario" class="search-bar-pos" placeholder="🔍 Escribe el nombre o código para buscar en inventario..." style="margin-bottom:16px;">
+                            
+                            <div class="categorias-tabs" id="categoriasTabsInventario">
+                                <button class="tab-btn active" data-categoria-inv="TODAS">TODAS</button>
+                                <button class="tab-btn" data-categoria-inv="SIN STOCK" style="color:var(--danger); border-color:var(--danger-glass);">SIN STOCK</button>
+                                <!-- Categorías inyectadas por app.js -->
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre del Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Variantes Disponibles</th>
+                                        <th>Stock Total</th>
+                                        <th>Precio Inventario (Costo)</th>
+                                        <th>Precio Venta</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventarioTableBody">
+                                    <!-- Renderizado dinámico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: AGREGAR / EDITAR PRODUCTO (MATRIX EDITOR)
+                     ================================================== -->
+                <section id="agregar" class="content-section">
+                    <div class="glass-panel" style="padding: 32px; max-width: 800px; margin: 0 auto;">
+                        <h3 style="margin-bottom: 24px; font-weight:700; color:white;" id="formProductoTitle">
+                            <i class="fa-solid fa-square-plus"></i> Registrar Nuevo Producto
+                        </h3>
+                        
+                        <div id="productoMessage" style="display:none; padding:12px; border-radius:10px; font-size:13px; margin-bottom:20px; text-align:center; font-weight:600;"></div>
+
+                        <form id="productoForm">
+                            <input type="hidden" id="editProductId">
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="categoria">Categoría</label>
+                                    <input type="text" class="form-input" id="categoria" list="categoriasList" placeholder="Escribe o selecciona una categoría" autocomplete="off" style="padding-left:16px;" required>
+                                    <datalist id="categoriasList">
+                                        <!-- Categorías llenadas dinámicamente -->
+                                    </datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="codigo">ID Interno (Calculado en vivo)</label>
+                                    <input type="text" class="form-input" id="codigo" placeholder="Escribe categoría para calcular..." style="padding-left:16px; background-color: var(--bg-glass); cursor: not-allowed;" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="codigo_barras">Código de Barras (Escáner / Opcional)</label>
+                                <input type="text" class="form-input" id="codigo_barras" placeholder="Ej: 750100012345 (Para productos con etiqueta)" style="padding-left:16px;">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="nombre">Nombre del Producto</label>
+                                <input type="text" class="form-input" id="nombre" placeholder="Ej: Bujía de Iridio / Gorra Red Sox" style="padding-left:16px;" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="descripcion">Descripción Breve</label>
+                                <textarea class="form-input" id="descripcion" placeholder="Opcional..." style="padding-left:16px; min-height:80px; resize:vertical;"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Fotos del Producto (Max 4 - Compresión Automática)</label>
+                                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:15px; margin-top:5px;">
+                                    <!-- Foto 1 (Principal) -->
+                                    <div class="foto-upload-box" style="position:relative; background:var(--bg-glass); border:1px dashed var(--border-dark); border-radius:8px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;" onclick="document.getElementById('imagenFile1').click()">
+                                        <input type="file" id="imagenFile1" class="producto-foto-input" accept="image/*" style="display:none;" onchange="previewImage(this, 1)">
+                                        <i class="fa-solid fa-camera" style="font-size:24px; color:var(--text-muted); margin-bottom:5px;"></i>
+                                        <span style="font-size:11px; color:var(--text-muted);">Principal</span>
+                                        <img id="imagenPreview1" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:8px; display:none; background:var(--bg-dark);">
+                                        <button type="button" id="btnRemoveImg1" class="btn btn-danger btn-small" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:24px; height:24px; padding:0; display:none; align-items:center; justify-content:center; z-index:10;" onclick="event.stopPropagation(); removeImagePreview(1);"><i class="fa-solid fa-xmark" style="font-size:12px;"></i></button>
+                                    </div>
+                                    <!-- Foto 2 -->
+                                    <div class="foto-upload-box" style="position:relative; background:var(--bg-glass); border:1px dashed var(--border-dark); border-radius:8px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;" onclick="document.getElementById('imagenFile2').click()">
+                                        <input type="file" id="imagenFile2" class="producto-foto-input" accept="image/*" style="display:none;" onchange="previewImage(this, 2)">
+                                        <i class="fa-solid fa-plus" style="font-size:24px; color:var(--text-muted); margin-bottom:5px;"></i>
+                                        <span style="font-size:11px; color:var(--text-muted);">Foto 2</span>
+                                        <img id="imagenPreview2" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:8px; display:none; background:var(--bg-dark);">
+                                        <button type="button" id="btnRemoveImg2" class="btn btn-danger btn-small" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:24px; height:24px; padding:0; display:none; align-items:center; justify-content:center; z-index:10;" onclick="event.stopPropagation(); removeImagePreview(2);"><i class="fa-solid fa-xmark" style="font-size:12px;"></i></button>
+                                    </div>
+                                    <!-- Foto 3 -->
+                                    <div class="foto-upload-box" style="position:relative; background:var(--bg-glass); border:1px dashed var(--border-dark); border-radius:8px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;" onclick="document.getElementById('imagenFile3').click()">
+                                        <input type="file" id="imagenFile3" class="producto-foto-input" accept="image/*" style="display:none;" onchange="previewImage(this, 3)">
+                                        <i class="fa-solid fa-plus" style="font-size:24px; color:var(--text-muted); margin-bottom:5px;"></i>
+                                        <span style="font-size:11px; color:var(--text-muted);">Foto 3</span>
+                                        <img id="imagenPreview3" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:8px; display:none; background:var(--bg-dark);">
+                                        <button type="button" id="btnRemoveImg3" class="btn btn-danger btn-small" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:24px; height:24px; padding:0; display:none; align-items:center; justify-content:center; z-index:10;" onclick="event.stopPropagation(); removeImagePreview(3);"><i class="fa-solid fa-xmark" style="font-size:12px;"></i></button>
+                                    </div>
+                                    <!-- Foto 4 -->
+                                    <div class="foto-upload-box" style="position:relative; background:var(--bg-glass); border:1px dashed var(--border-dark); border-radius:8px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;" onclick="document.getElementById('imagenFile4').click()">
+                                        <input type="file" id="imagenFile4" class="producto-foto-input" accept="image/*" style="display:none;" onchange="previewImage(this, 4)">
+                                        <i class="fa-solid fa-plus" style="font-size:24px; color:var(--text-muted); margin-bottom:5px;"></i>
+                                        <span style="font-size:11px; color:var(--text-muted);">Foto 4</span>
+                                        <img id="imagenPreview4" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:8px; display:none; background:var(--bg-dark);">
+                                        <button type="button" id="btnRemoveImg4" class="btn btn-danger btn-small" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:24px; height:24px; padding:0; display:none; align-items:center; justify-content:center; z-index:10;" onclick="event.stopPropagation(); removeImagePreview(4);"><i class="fa-solid fa-xmark" style="font-size:12px;"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="precioInventario">Costo de Adquisición (Costo)</label>
+                                    <input type="number" class="form-input" id="precioInventario" placeholder="0.00" min="0" step="0.01" style="padding-left:16px;" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="precioVenta">Precio de Venta al Público</label>
+                                    <input type="number" class="form-input" id="precioVenta" placeholder="0.00" min="0" step="0.01" style="padding-left:16px;" required>
+                                </div>
+                            </div>
+
+                            <!-- EDITOR DINÁMICO DE VARIANTES (MATRIZ INTEGRADA) -->
+                            <div class="form-group" style="margin-top:24px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <label class="form-label" style="margin-bottom:0;">Matriz de Variantes (Talla, Color, Stock)</label>
+                                    <button type="button" class="btn btn-secondary btn-small" id="btnAgregarVariante" style="padding: 4px 8px;">
+                                        <i class="fa-solid fa-plus"></i> Añadir Variante
+                                    </button>
+                                </div>
+                                
+                                <div class="variants-editor">
+                                    <div class="variants-table-header">
+                                        <div>Talla / Medida</div>
+                                        <div>Color / Modelo</div>
+                                        <div>Stock</div>
+                                        <div>Quitar</div>
+                                    </div>
+                                    <div class="variants-list" id="variantesList">
+                                        <!-- Filas añadidas dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:16px; margin-top:32px;">
+                                <button type="submit" class="btn btn-primary" style="flex:1;">
+                                    <i class="fa-solid fa-save"></i> Guardar Producto
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="btnCancelarEdicion" style="display:none;">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: GASTOS E INVERSIÓN (OPEX)
+                     ================================================== -->
+                <section id="gastos" class="content-section">
+                    <div style="display:grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start;">
+                        
+                        <!-- Formulario de gasto -->
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3 style="margin-bottom: 20px; font-weight:700; color:white;">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Registrar Gasto
+                            </h3>
+                            <form id="formGasto">
+                                <div class="form-group">
+                                    <label class="form-label" for="gastoConcepto">Concepto</label>
+                                    <input type="text" class="form-input" id="gastoConcepto" placeholder="Ej: Renta de local / Facebook Ads" style="padding-left:16px;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="gastoMonto">Monto ($)</label>
+                                    <input type="number" class="form-input" id="gastoMonto" placeholder="0.00" min="0.01" step="0.01" style="padding-left:16px;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="gastoCategoria">Categoría</label>
+                                    <select class="form-input" id="gastoCategoria" style="padding-left:16px;" required>
+                                        <option value="Marketing">Marketing & Ads</option>
+                                        <option value="Renta">Renta & Servicios</option>
+                                        <option value="Mobiliario">Mobiliario & Equipo</option>
+                                        <option value="Nómina">Nómina / Sueldos</option>
+                                        <option value="Otros">Otros Egresos</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="gastoFecha">Fecha</label>
+                                    <input type="date" class="form-input" id="gastoFecha" style="padding-left:16px;" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">
+                                    <i class="fa-solid fa-save"></i> Guardar Egreso
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Listado de gastos -->
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3 style="margin-bottom: 20px; font-weight:700; color:white;">
+                                Historial de Inversiones y Egresos Operativos
+                            </h3>
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+                                <div style="font-size:14px; color:var(--text-secondary);">
+                                    Total Acumulado en Gastos: <strong id="statGastosTotal" style="color:var(--danger); font-size:18px;">$0.00</strong>
+                                </div>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <label style="font-size:13px; color:var(--text-muted);">Filtrar por Mes:</label>
+                                    <input type="month" id="filtroGastosMes" class="form-input" style="padding:6px 12px; width:auto;">
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="premium-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Categoría</th>
+                                            <th>Concepto</th>
+                                            <th>Monto</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gastosTableBody">
+                                        <!-- Renderizado dinámico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Gráfico de Gastos -->
+                            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <h4 style="margin-bottom: 16px; color:var(--text-primary);"><i class="fa-solid fa-chart-pie"></i> Gastos por Categoría</h4>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="gastosChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: REPORTES MENSUALES (PDF)
+                     ================================================== -->
+                <section id="reportes" class="content-section">
+                    <div class="glass-panel" style="padding: 24px; max-width:800px; margin:0 auto;">
+                        <h3 style="font-weight:700; color:white; margin-bottom:20px; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> Reporte Financiero Mensual
+                        </h3>
+                        
+                        <p style="color:var(--text-secondary); margin-bottom:24px; line-height:1.6;">
+                            Genera un documento PDF detallado con todas las ventas y gastos de un mes específico para analizar la utilidad neta de tu negocio.
+                        </p>
+
+                        <div style="background:var(--bg-glass); border:1px solid var(--border-dark); border-radius:12px; padding:24px;">
+                            <div class="form-group" style="margin-bottom:24px;">
+                                <label class="form-label" style="font-weight:600; font-size:14px; margin-bottom:12px;">Selecciona el mes y año:</label>
+                                <input type="month" id="reporteMesInput" class="form-input" style="max-width:300px; padding:12px; font-size:16px;">
+                            </div>
+                            
+                            <button id="btnGenerarReportePDF" class="btn btn-primary" style="padding:16px 24px; font-size:16px;">
+                                <i class="fa-solid fa-download"></i> Generar y Descargar Reporte PDF
+                            </button>
+                        </div>
+                        
+                        <div id="reporteStatusMsg" style="margin-top:20px; color:var(--primary-emerald); font-weight:600; display:none;">
+                            <i class="fa-solid fa-circle-check"></i> Reporte generado con éxito. Revisa tus descargas.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: FINANZAS Y CONTABILIDAD
+                     ================================================== -->
+                <section id="finanzas" class="content-section">
+                    <div class="metrics-grid" style="margin-bottom:20px;">
+                        <!-- Capital Invertido -->
+                        <div class="metric-card glass-panel" style="border-left: 4px solid var(--primary-amber);">
+                            <div>
+                                <div class="metric-label">Capital en Inventario</div>
+                                <div class="metric-value" id="finanzasCapital">Cargando...</div>
+                            </div>
+                            <div class="metric-icon" style="color: var(--primary-amber); background: rgba(245, 158, 11, 0.1);">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                            </div>
+                        </div>
+
+                        <!-- Ingresos Brutos -->
+                        <div class="metric-card glass-panel" style="border-left: 4px solid #3b82f6;">
+                            <div>
+                                <div class="metric-label">Ingresos Brutos (Ventas)</div>
+                                <div class="metric-value" id="finanzasIngresos">Cargando...</div>
+                            </div>
+                            <div class="metric-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom:20px;">
+                        <!-- COGS -->
+                        <div class="metric-card glass-panel" style="border-left: 4px solid #f97316;">
+                            <div>
+                                <div class="metric-label">Costo de Mercancía Vendida</div>
+                                <div class="metric-value" id="finanzasCogs" style="color:#f97316;">Cargando...</div>
+                            </div>
+                            <div class="metric-icon" style="color: #f97316; background: rgba(249, 115, 22, 0.1);">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                            </div>
+                        </div>
+
+                        <!-- OPEX -->
+                        <div class="metric-card glass-panel" style="border-left: 4px solid var(--danger);">
+                            <div>
+                                <div class="metric-label">Gastos Operativos (OPEX)</div>
+                                <div class="metric-value" id="finanzasOpex" style="color:var(--danger);">Cargando...</div>
+                            </div>
+                            <div class="metric-icon" style="color: var(--danger); background: var(--danger-glass);">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel" style="padding: 30px; text-align:center; border: 2px solid var(--primary-emerald); position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:-20px; right:-20px; font-size:150px; color:rgba(16, 185, 129, 0.05); pointer-events:none;">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <h3 style="color:var(--text-muted); font-size:16px; margin-bottom:10px; font-weight:600;">UTILIDAD NETA GLOBAL</h3>
+                        <div id="finanzasUtilidad" style="font-size:48px; font-weight:800; color:var(--primary-emerald); letter-spacing:-1px;">Cargando...</div>
+                        <p style="color:var(--text-secondary); margin-top:10px; font-size:14px;">(Ingresos Brutos - Costo de Mercancía - Gastos Operativos)</p>
+                    </div>
+                </section>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     SECCIÓN: PERFIL Y SUSCRIPCIÓN
+                     ================================================== -->
+                <section id="perfil" class="content-section">
+                    <div style="max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:20px;">
+                        
+                        <!-- Tarjeta de Suscripción -->
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3 style="font-weight:700; color:white; margin-bottom:20px; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                                <i class="fa-solid fa-crown"></i> Tu Suscripción
+                            </h3>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:20px; text-align:center;">
+                                    <div style="color:var(--text-muted); font-size:12px; font-weight:600; margin-bottom:8px;">PLAN ACTUAL</div>
+                                    <div id="perfilPlan" style="color:var(--primary-emerald); font-size:24px; font-weight:700; text-transform:uppercase;">Cargando...</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:20px; text-align:center;">
+                                    <div style="color:var(--text-muted); font-size:12px; font-weight:600; margin-bottom:8px;">DÍAS RESTANTES</div>
+                                    <div id="perfilDiasRestantes" style="color:var(--primary-emerald); font-size:28px; font-weight:700;">--</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:20px; text-align:center;">
+                                    <div style="color:var(--text-muted); font-size:12px; font-weight:600; margin-bottom:8px;">FECHA DE VENCIMIENTO</div>
+                                    <div id="perfilFechaVenc" style="color:var(--text-secondary); font-size:16px; font-weight:600; margin-top:5px;">--</div>
+                                </div>
+                            </div>
+                            
+                            <div id="perfilRenovacionAlerta" style="margin-top:20px; padding:15px; border-radius:8px; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); color:var(--danger); display:none;">
+                                <strong><i class="fa-solid fa-triangle-exclamation"></i> ¡Atención!</strong> Tu suscripción está por expirar o ya expiró. Por favor, contacta a soporte para renovar tu plan y evitar la suspensión del servicio.
+                            </div>
+                        </div>
+
+                        <!-- Acerca de Nosotros -->
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3 style="font-weight:700; color:white; margin-bottom:20px; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                                <i class="fa-solid fa-building"></i> Acerca de Nosotros
+                            </h3>
+                            <div style="display:flex; flex-direction:column; gap:15px; color:var(--text-secondary); line-height:1.6;">
+                                <p>
+                                    Bienvenido a <strong>Mora Console</strong> powered by DexterPV. Somos una empresa dedicada a potenciar el crecimiento de negocios locales y PyMES mediante soluciones tecnológicas accesibles, rápidas y seguras.
+                                </p>
+                                <p>
+                                    Nuestra plataforma multi-tenant ofrece:
+                                </p>
+                                <ul style="margin-left:20px; display:flex; flex-direction:column; gap:8px;">
+                                    <li><i class="fa-solid fa-check" style="color:var(--primary-emerald);"></i> Punto de Venta ágil y sin complicaciones.</li>
+                                    <li><i class="fa-solid fa-check" style="color:var(--primary-emerald);"></i> Gestión inteligente de inventarios en tiempo real.</li>
+                                    <li><i class="fa-solid fa-check" style="color:var(--primary-emerald);"></i> Control de OPEX (Gastos operativos) y finanzas.</li>
+                                    <li><i class="fa-solid fa-check" style="color:var(--primary-emerald);"></i> Seguridad de datos respaldada por bases de datos de alta disponibilidad.</li>
+                                </ul>
+                                <p style="margin-top:10px; font-size:12px; text-align:center; color:var(--text-muted);">
+                                    Versión 2.0 - DexterPV Core © 2026<br>
+                                    Desarrollado con ❤️ para tu negocio.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: CONSOLA DE SUPERADMINISTRADOR (TENANT LIST)
+                     ================================================== -->
+                <section id="superadmin-panel" class="content-section">
+                    
+                    <!-- Estadísticas globales de inquilinos -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Comercios Registrados</div>
+                                <div class="metric-value" id="statTotalComercios">0</div>
+                            </div>
+                            <div class="metric-icon-box emerald">
+                                <i class="fa-solid fa-shop"></i>
+                            </div>
+                        </div>
+
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Licencias Activas</div>
+                                <div class="metric-value" id="statComerciosActivos">0</div>
+                            </div>
+                            <div class="metric-icon-box blue">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+
+                        <div class="metric-card glass-panel">
+                            <div>
+                                <div class="metric-label">Suspendidos / Vencidos</div>
+                                <div class="metric-value" id="statComerciosBloqueados">0</div>
+                            </div>
+                            <div class="metric-icon-box warning">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:block; margin-top:24px;">
+                        
+                        <!-- Listado de comercios e inquilinos -->
+                        <div class="glass-panel" style="padding:24px;">
+                            <h3 style="margin-bottom:20px; font-weight:700; color:white;">
+                                <i class="fa-solid fa-list-check"></i> Clientes Multi-tenant Registrados
+                            </h3>
+                            <div class="table-container">
+                                <table class="premium-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre del Comercio</th>
+                                            <th>Estado</th>
+                                            <th>Plan</th>
+                                            <th>Vencimiento</th>
+                                            <th>Admins</th>
+                                            <th>Uso Almacén</th>
+                                            <th>Controles de Licencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comerciosTableBody">
+                                        <!-- Renderizado dinámico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: CONSOLA DE SUPERADMINISTRADOR (AGREGAR CLIENTE)
+                     ================================================== -->
+                <section id="superadmin-agregar" class="content-section">
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <div class="glass-panel" style="padding:30px;">
+                            <h3 style="margin-bottom:24px; font-weight:700; color:white; border-bottom:1px solid var(--border-dark); padding-bottom:12px;">
+                                <i class="fa-solid fa-shop-medical"></i> Registrar Nuevo Inquilino
+                            </h3>
+                            
+                            <form id="formNuevoComercio">
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioNombre">Nombre del Comercio</label>
+                                    <input type="text" class="form-input" id="nuevoComercioNombre" placeholder="Ej: Gorras Imperio" style="padding-left:16px;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioPlan">Plan de Suscripción</label>
+                                    <select class="form-input" id="nuevoComercioPlan" style="padding-left:16px;" required>
+                                        <option value="1_mes">Suscripción Mensual (30 días)</option>
+                                        <option value="6_meses">Suscripción Semestral (180 días)</option>
+                                        <option value="1_ano">Suscripción Anual (365 días)</option>
+                                        <option value="gratis">Licencia de Prueba (7 días)</option>
+                                    </select>
+                                </div>
+
+                                <div style="border-top:1px solid var(--border-dark); margin:24px 0; padding-top:24px;">
+                                    <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:16px;">
+                                        <i class="fa-solid fa-database"></i> Conexión a Base de Datos (Multi-Tenant)
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioSupabaseUrl">Supabase Project URL</label>
+                                    <input type="url" class="form-input" id="nuevoComercioSupabaseUrl" placeholder="https://xxx.supabase.co" style="padding-left:16px;">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioSupabaseKey">Supabase Anon Key</label>
+                                    <input type="text" class="form-input" id="nuevoComercioSupabaseKey" placeholder="eyJhbGci..." style="padding-left:16px;">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioDbString">Database Connection String (URI)</label>
+                                    <input type="password" class="form-input" id="nuevoComercioDbString" placeholder="postgresql://postgres:password@db.xxx.supabase.co:5432/postgres" style="padding-left:16px;">
+                                </div>
+
+                                <div style="border-top:1px solid var(--border-dark); margin:24px 0; padding-top:24px;">
+                                    <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:16px;">
+                                        👤 Cuenta del Administrador Principal
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioAdminNombre">Nombre Completo</label>
+                                    <input type="text" class="form-input" id="nuevoComercioAdminNombre" placeholder="Ej: Juan Pérez" style="padding-left:16px;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioAdminUser">Usuario de Acceso</label>
+                                    <input type="text" class="form-input" id="nuevoComercioAdminUser" placeholder="Ej: juan_admin" style="padding-left:16px;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="nuevoComercioAdminPass">Contraseña Inicial</label>
+                                    <input type="password" class="form-input" id="nuevoComercioAdminPass" placeholder="••••••••" style="padding-left:16px;" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block" style="margin-top:20px; padding:16px; font-size:16px;">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Activar Cuenta & SaaS
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: CONSOLA DE SUPERADMINISTRADOR (GESTIÓN DE PERSONAL)
+                     ================================================== -->
+                <section id="superadmin-personal" class="content-section">
+                    <div style="max-width: 900px; margin: 0 auto;">
+                        <div class="glass-panel" style="padding:24px; margin-bottom:24px;">
+                            <h3 style="margin-bottom:16px; font-weight:700; color:white;">
+                                <i class="fa-solid fa-building-user"></i> Seleccionar Comercio
+                            </h3>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label" for="superadminSearchComercio">Buscar Cliente (Nombre o ID)</label>
+                                <input list="comerciosList" class="form-input" id="superadminSearchComercio" placeholder="Escriba nombre o ID del comercio..." style="padding-left:16px;">
+                                <datalist id="comerciosList">
+                                    <!-- Dinámico -->
+                                </datalist>
+                                <input type="hidden" id="superadminSelectComercio">
+                            </div>
+                        </div>
+
+                        <div id="superadminPersonalContainer" style="display:none; grid-template-columns: 1fr 350px; gap: 24px; align-items: start;">
+                            <!-- Lista de Usuarios -->
+                            <div class="glass-panel" style="padding: 24px;">
+                                <h3 style="margin-bottom:20px; font-weight:700; color:white;">
+                                    <i class="fa-solid fa-users"></i> Cuentas del Cliente
+                                </h3>
+                                <div class="table-container">
+                                    <table class="premium-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Usuario</th>
+                                                <th>Contraseña</th>
+                                                <th>Rol / Acceso</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="superadminPersonalTableBody">
+                                            <!-- Dinámico -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Formulario Nuevo Usuario -->
+                            <div class="glass-panel" style="padding: 24px;">
+                                <h3 style="margin-bottom:20px; font-weight:700; color:white;">
+                                    <i class="fa-solid fa-user-plus"></i> Nueva Cuenta Extra
+                                </h3>
+                                <form id="formSuperadminNuevoPersonal">
+                                    <div class="form-group">
+                                        <label class="form-label" for="saPersonalNombre">Nombre Completo</label>
+                                        <input type="text" class="form-input" id="saPersonalNombre" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="saPersonalUsuario">Usuario (Login)</label>
+                                        <input type="text" class="form-input" id="saPersonalUsuario" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="saPersonalPass">Contraseña</label>
+                                        <input type="password" class="form-input" id="saPersonalPass" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="saPersonalRol">Rol de Acceso</label>
+                                        <select class="form-input" id="saPersonalRol">
+                                            <option value="vendedor">Vendedor (Punto de Venta e Inventario)</option>
+                                            <option value="admin">Administrador Secundario (Acceso Total)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">
+                                        <i class="fa-solid fa-check"></i> Activar Cuenta
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: SELECTOR DE VARIANTES PARA VENTAS (POS) -->
+    <div id="variantSelectorModal" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 class="modal-title" id="variantSelectProductName">Selecciona Variante</h3>
+                <button class="modal-close" onclick="closeVariantModal()">&times;</button>
+            </div>
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>Talla / Medida</th>
+                            <th>Color / Modelo</th>
+                            <th>Stock Disponible</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variantSelectorBody">
+                        <!-- Carga dinámica de variantes con stock > 0 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DESCUENTO PERSONALIZADO UNITARIO (CARRITO) -->
+    <div id="descuentoModal" class="modal">
+        <div class="modal-content glass-panel" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🏷️ Aplicar Descuento Especial</h3>
+                <button class="modal-close" onclick="cerrarModalDescuento()">&times;</button>
+            </div>
+            <div class="form-group">
+                <div id="descuentoMensaje" style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.5;"></div>
+                <label class="form-label" for="descuentoInputVal">Precio Unitario Ajustado ($)</label>
+                <div class="input-wrapper">
+                    <input class="form-input" type="number" id="descuentoInputVal" min="0" step="0.01" placeholder="Ej: 135.00" style="padding-left:16px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn btn-primary" id="btnDescuentoAceptar" style="flex:1;">Aceptar</button>
+                <button class="btn btn-secondary" onclick="cerrarModalDescuento()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALLES DE COMERCIO / INQUILINO -->
+    <div id="detallesComercioModal" class="modal">
+        <div class="modal-content glass-panel" style="max-width:550px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-address-card"></i> Detalles del Inquilino</h3>
+                <button class="modal-close" onclick="cerrarDetallesModal()">&times;</button>
+            </div>
+            
+            <div id="detallesLoader" style="text-align:center; padding: 20px; display:none;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:24px; color:var(--primary-emerald);"></i>
+                <p style="margin-top:10px; color:var(--text-muted); font-size:14px;">Cargando información...</p>
+            </div>
+
+            <div id="detallesContenido" style="display:none; font-size:14px; margin-top:10px;">
+                <!-- Comercio Info -->
+                <div style="background:var(--bg-glass); border:1px solid var(--border-dark); border-radius:8px; padding:15px; margin-bottom:15px;">
+                    <h4 style="margin-bottom:10px; color:var(--text-primary); border-bottom:1px solid var(--border-dark); padding-bottom:5px;">Datos de la Empresa</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div><strong style="color:var(--text-muted);">Comercio:</strong> <span id="detComercioNombre" style="color:var(--primary-emerald); font-weight:700;"></span></div>
+                        <div><strong style="color:var(--text-muted);">ID Tenant:</strong> <span id="detComercioId"></span></div>
+                        <div><strong style="color:var(--text-muted);">Plan:</strong> <span id="detComercioPlan" style="text-transform:uppercase;"></span></div>
+                        <div><strong style="color:var(--text-muted);">Vencimiento:</strong> <span id="detComercioVencimiento"></span></div>
+                    </div>
+                </div>
+
+                <!-- Admin Info -->
+                <div style="background:var(--bg-glass); border:1px solid var(--border-dark); border-radius:8px; padding:15px; margin-bottom:15px;">
+                    <h4 style="margin-bottom:10px; color:var(--text-primary); border-bottom:1px solid var(--border-dark); padding-bottom:5px;">Cuenta del Administrador</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div><strong style="color:var(--text-muted);">Nombre:</strong> <span id="detAdminNombre"></span></div>
+                        <div><strong style="color:var(--text-muted);">Rol:</strong> <span class="badge badge-success">Admin</span></div>
+                        <div><strong style="color:var(--text-muted);">Usuario:</strong> <span id="detAdminUsuario" style="font-weight:700; color:var(--text-primary);"></span></div>
+                        <div><strong style="color:var(--text-muted);">Contraseña:</strong> <span id="detAdminPassword" style="font-family:monospace; background:rgba(128,128,128,0.2); padding:2px 6px; border-radius:4px; letter-spacing:1px; cursor:pointer;" title="Clic para revelar/ocultar" onclick="toggleDetPassword()">••••••••</span></div>
+                    </div>
+                </div>
+
+                <!-- Database Info -->
+                <div style="background:var(--bg-glass); border:1px solid var(--border-dark); border-radius:8px; padding:15px;">
+                    <h4 style="margin-bottom:10px; color:var(--text-primary); border-bottom:1px solid var(--border-dark); padding-bottom:5px;">Conexión a Base de Datos</h4>
+                    <div style="margin-bottom:8px;">
+                        <strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Supabase URL:</strong>
+                        <div id="detSupabaseUrl" style="word-break:break-all; font-family:monospace; background:rgba(0,0,0,0.2); padding:6px; border-radius:4px;"></div>
+                    </div>
+                    <div>
+                        <strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Connection String (URI):</strong>
+                        <div id="detDbString" style="word-break:break-all; font-family:monospace; background:rgba(0,0,0,0.2); padding:6px; border-radius:4px; font-size:12px;"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <button class="btn btn-danger" id="btnEliminarInquilino" title="Borrar inquilino y su usuario permanentemente">
+                        <i class="fa-solid fa-trash-can"></i> Eliminar Permanentemente
+                    </button>
+                    <button class="btn btn-secondary" onclick="cerrarDetallesModal()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DB Layer and Application Script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js?v=2"></script>
+    <script src="app.js?v=2"></script>
+</body>
+</html>
