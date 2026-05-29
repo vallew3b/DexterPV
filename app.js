@@ -77,6 +77,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('lockedCommerceName').textContent = `COMERCIO: ${user.comercio.nombre.toUpperCase()}`;
             }
         }
+        document.getElementById('lockedLogoutBtn')?.addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        });
+        
         return;
     }
 
@@ -89,10 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('a[data-section="finanzas"]').forEach(el => el.parentElement.style.display = 'none');
         document.querySelectorAll('a[data-section="personal"]').forEach(el => el.parentElement.style.display = 'none');
     }
-    document.getElementById('lockedLogoutBtn')?.addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = 'index.html';
-    });
 
     // 2. Configurar Menús y Permisos
     if (isSuperadmin) {
