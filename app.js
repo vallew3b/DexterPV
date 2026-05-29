@@ -114,6 +114,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const section = link.getAttribute('data-section');
+            if (section === 'agregar' && document.getElementById('editProductId')?.value) {
+                document.getElementById('productoForm').reset();
+                document.getElementById('editProductId').value = '';
+                variantesEditor = [];
+                renderVariantesEditor();
+                document.getElementById('formProductoTitle').innerHTML = '<i class="fa-solid fa-square-plus"></i> Registrar Nuevo Producto';
+                document.getElementById('btnCancelarEdicion').style.display = 'none';
+                const formBtn = document.querySelector('#productoForm button[type="submit"]');
+                if (formBtn) formBtn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Producto';
+            }
             navigateToSection(section);
         });
     });
@@ -278,6 +288,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const datalist = document.getElementById('categoriasList');
             if (datalist) {
                 datalist.innerHTML = uniqueCategories.map(c => `<option value="${c}">`).join('');
+            }
+            const suggContainer = document.getElementById('categoriasSugeridas');
+            if (suggContainer) {
+                suggContainer.innerHTML = uniqueCategories.map(c => 
+                    `<span class="badge" style="background:var(--bg-glass); cursor:pointer; padding:6px 10px; font-size:12px; border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary);" onclick="document.getElementById('categoria').value='${c}'; document.getElementById('categoria').dispatchEvent(new Event('input'))">${c}</span>`
+                ).join('');
             }
         } catch (e) {
             console.error('Error al cargar categorías form', e);
@@ -1102,7 +1118,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast('Error', 'Excepción al guardar', 'error');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Producto';
+            const currentId = document.getElementById('editProductId').value;
+            btn.innerHTML = currentId ? '<i class="fa-solid fa-save"></i> Actualizar Producto' : '<i class="fa-solid fa-save"></i> Guardar Producto';
         }
     });
 
@@ -1146,6 +1163,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('formProductoTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Producto';
         document.getElementById('btnCancelarEdicion').style.display = 'block';
+        const formBtn = document.querySelector('#productoForm button[type="submit"]');
+        if (formBtn) formBtn.innerHTML = '<i class="fa-solid fa-save"></i> Actualizar Producto';
 
         navigateToSection('agregar');
     };
@@ -1157,6 +1176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderVariantesEditor();
         document.getElementById('formProductoTitle').innerHTML = '<i class="fa-solid fa-square-plus"></i> Registrar Nuevo Producto';
         document.getElementById('btnCancelarEdicion').style.display = 'none';
+        const formBtn = document.querySelector('#productoForm button[type="submit"]');
+        if (formBtn) formBtn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Producto';
     });
 
 
