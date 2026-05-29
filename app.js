@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('btnCancelarEdicion').style.display = 'none';
                 const formBtn = document.querySelector('#productoForm button[type="submit"]');
                 if (formBtn) formBtn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Producto';
+                for (let i = 1; i <= 4; i++) removeImagePreview(i);
             }
             navigateToSection(section);
         });
@@ -1178,6 +1179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('btnCancelarEdicion').style.display = 'none';
         const formBtn = document.querySelector('#productoForm button[type="submit"]');
         if (formBtn) formBtn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Producto';
+        for (let i = 1; i <= 4; i++) removeImagePreview(i);
     });
 
 
