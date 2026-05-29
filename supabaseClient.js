@@ -243,15 +243,17 @@ try {
       const hoyStr = new Date().toISOString().split('T')[0];
       const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoyStr).reduce((sum, v) => sum + (v.total || 0), 0);
       
-      // Gráfica últimos 7 días
+      // Gráfica últimos 6 meses
       const grafico = { labels: [], data: [] };
-      for (let i = 6; i >= 0; i--) {
+      for (let i = 5; i >= 0; i--) {
         const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        d.setMonth(d.getMonth() - i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const monthPrefix = `${year}-${month}`;
         
-        const label = d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' });
-        const suma = ventas.filter(v => v.fecha.split('T')[0] === dateStr).reduce((sum, v) => sum + (v.total || 0), 0);
+        const label = d.toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
+        const suma = ventas.filter(v => v.fecha.startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
         
         grafico.labels.push(label);
         grafico.data.push(parseFloat(suma.toFixed(2)));
