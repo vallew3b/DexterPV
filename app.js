@@ -1756,20 +1756,49 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadSuperadminData();
         }
     };
-    window.saasRenovarPersonalizado = async (id) => {
-        const input = prompt("¿Cuántos días deseas agregar a la licencia?\n\n(Ej. 2 para recuperar días, 30 para un mes, 90 para tres meses, etc.)\nNota: También puedes usar números negativos.");
-        if (input === null || input.trim() === '') return;
-        const dias = parseInt(input);
+    let tenantEnRenovacion = null;
+
+    window.cerrarRenovarModal = () => {
+        const modal = document.getElementById('renovarLicenciaModal');
+        if (modal) modal.classList.remove('active');
+        tenantEnRenovacion = null;
+    };
+
+    window.saasRenovarPersonalizado = (id) => {
+        tenantEnRenovacion = id;
+        document.getElementById('renovarDiasInput').value = '';
+        const modal = document.getElementById('renovarLicenciaModal');
+        if (modal) modal.classList.add('active');
+    };
+
+    document.getElementById('btnConfirmarRenovacion')?.addEventListener('click', async () => {
+        if (!tenantEnRenovacion) return;
+        
+        const diasStr = document.getElementById('renovarDiasInput').value;
+        const dias = parseInt(diasStr);
+        
         if (isNaN(dias) || dias === 0) {
-            showToast('Error', 'Ingresa una cantidad válida de días.', 'error');
+            showToast('Error', 'Ingresa una cantidad válida de días diferente de 0.', 'error');
             return;
         }
-        if (confirm(`¿Estás seguro de modificar la licencia agregando ${dias} día(s)?`)) {
-            await window.electronAPI.renovarComercio(id, dias);
-            showToast('Modificado', `Se han agregado ${dias} día(s) a la licencia.`);
+
+        const btn = document.getElementById('btnConfirmarRenovacion');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+
+        try {
+            await window.electronAPI.renovarComercio(tenantEnRenovacion, dias);
+            showToast('Modificado', `Se han actualizado ${dias} día(s) de licencia.`);
+            cerrarRenovarModal();
             loadSuperadminData();
+        } catch (err) {
+            console.error(err);
+            showToast('Error', 'Fallo al modificar licencia', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Cambios';
         }
-    };
+    });
     window.saasSuspender = async (id) => {
         if (confirm('¿Suspender el acceso a este comercio inmediatamente? Aparecerá la pantalla de candado.')) {
             await window.electronAPI.suspenderComercio(id);

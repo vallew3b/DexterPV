@@ -1080,6 +1080,37 @@
         </div>
     </div>
 
+    <!-- MODAL: MODIFICAR TIEMPO LICENCIA -->
+    <div id="renovarLicenciaModal" class="modal">
+        <div class="modal-content glass-panel" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-calendar-plus"></i> Modificar Licencia</h3>
+                <button class="modal-close" onclick="cerrarRenovarModal()">&times;</button>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.5;">
+                    Ingresa la cantidad de días que deseas agregar a la licencia de este cliente. Puedes usar números negativos para restar.
+                    <br><br>
+                    <strong style="color:var(--text-primary);">Ejemplos rápidos:</strong><br>
+                    <span style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                        <span class="badge" style="cursor:pointer; background:rgba(0,0,0,0.05); color:var(--text-primary);" onclick="document.getElementById('renovarDiasInput').value=2">+2 días (Fallas)</span>
+                        <span class="badge" style="cursor:pointer; background:rgba(0,0,0,0.05); color:var(--text-primary);" onclick="document.getElementById('renovarDiasInput').value=30">+30 días (Mes)</span>
+                        <span class="badge" style="cursor:pointer; background:rgba(0,0,0,0.05); color:var(--text-primary);" onclick="document.getElementById('renovarDiasInput').value=90">+90 días (3 Meses)</span>
+                        <span class="badge" style="cursor:pointer; background:rgba(0,0,0,0.05); color:var(--text-primary);" onclick="document.getElementById('renovarDiasInput').value=365">+365 días (Año)</span>
+                    </span>
+                </p>
+                <label class="form-label" for="renovarDiasInput">Días a agregar / restar</label>
+                <div class="input-wrapper">
+                    <input class="form-input" type="number" id="renovarDiasInput" placeholder="Ej: 30" style="padding-left:16px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn btn-primary" id="btnConfirmarRenovacion" style="flex:1;">Confirmar Cambios</button>
+                <button class="btn btn-secondary" onclick="cerrarRenovarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DB Layer and Application Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
