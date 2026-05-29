@@ -1517,11 +1517,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <button class="btn btn-secondary btn-small" onclick="saasVerDetalles(${c.id})" title="Ver Detalles" style="color:var(--text-primary); border-color:var(--border-dark);">
                                     <i class="fa-solid fa-eye"></i> Detalles
                                 </button>
-                                <button class="btn btn-primary btn-small" onclick="saasRenovar(${c.id}, 30)" title="Añadir 30 días">
-                                    +1 Mes
-                                </button>
-                                <button class="btn btn-secondary btn-small" onclick="saasRenovar(${c.id}, 365)" title="Añadir 365 días" style="color:var(--info); border-color:var(--info-glass);">
-                                    +1 Año
+                                <button class="btn btn-primary btn-small" onclick="saasRenovarPersonalizado(${c.id})" title="Añadir o restar días de licencia" style="background:var(--info); color:white; border-color:var(--info);">
+                                    <i class="fa-solid fa-calendar-plus"></i> Añadir Tiempo
                                 </button>
                                 ${bloqueado ? `
                                     <button class="btn btn-secondary btn-small" onclick="saasActivar(${c.id})" style="color:var(--primary-emerald);">Activar</button>
@@ -1756,6 +1753,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (confirm(`¿Renovar suscripción sumando ${dias} días al comercio?`)) {
             await window.electronAPI.renovarComercio(id, dias);
             showToast('Renovado', `Licencia extendida ${dias} días.`);
+            loadSuperadminData();
+        }
+    };
+    window.saasRenovarPersonalizado = async (id) => {
+        const input = prompt("¿Cuántos días deseas agregar a la licencia?\n\n(Ej. 2 para recuperar días, 30 para un mes, 90 para tres meses, etc.)\nNota: También puedes usar números negativos.");
+        if (input === null || input.trim() === '') return;
+        const dias = parseInt(input);
+        if (isNaN(dias) || dias === 0) {
+            showToast('Error', 'Ingresa una cantidad válida de días.', 'error');
+            return;
+        }
+        if (confirm(`¿Estás seguro de modificar la licencia agregando ${dias} día(s)?`)) {
+            await window.electronAPI.renovarComercio(id, dias);
+            showToast('Modificado', `Se han agregado ${dias} día(s) a la licencia.`);
             loadSuperadminData();
         }
     };
