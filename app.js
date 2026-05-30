@@ -192,7 +192,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         else if (sectionId === 'superadmin-personal') loadSuperadminPersonalData();
     }
 
+    // =========================================================
+    // LÓGICA GLOBAL DE ESCÁNER DE CÓDIGO DE BARRAS
+    // =========================================================
+    let barcodeBuffer = '';
+    let barcodeTimer = null;
+    
+    document.addEventListener('keydown', (e) => {
+        // Ignorar si el foco está en un textarea para evitar borrar o saltar líneas sin querer
+        if (e.target.tagName === 'TEXTAREA') return;
+        
+        if (e.key.length === 1) {
+            barcodeBuffer += e.key;
+            if (barcodeTimer) clearTimeout(barcodeTimer);
+            // Si el tiempo entre teclas es mayor a 50ms, es escritura humana
+            barcodeTimer = setTimeout(() => {
+                barcodeBuffer = '';
+            }, 50);
+        } else if (e.key === 'Enter' && barcodeBuffer.length >= 3) {
+            e.preventDefault(); // Evitar submit de forms accidentales
+            const scannedCode = barcodeBuffer;
+            barcodeBuffer = '';
+            
+            const activeSection = document.querySelector('.content-section.active');
+            if (!activeSection) return;
 
+            if (activeSection.id === 'ventas') {
+                const p = currentPOSProducts.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
+                if (p) {
+                    openVariantSelector(p.id);
+                    const searchBar = document.getElementById('buscarProducto');
+                    if (searchBar) searchBar.value = '';
+                } else {
+                    showToast('No Encontrado', 'El producto escaneado no está en el catálogo actual.', 'warning');
+                }
+            } else if (activeSection.id === 'agregar') {
+                const inputCB = document.getElementById('codigo_barras');
+                if (inputCB) {
+                    inputCB.value = scannedCode;
+                    showToast('Escáner', 'Código de barras leído correctamente.', 'info');
+                }
+            } else if (activeSection.id === 'inventario') {
+                const searchInv = document.getElementById('buscarInventario');
+                if (searchInv) {
+                    searchInv.value = scannedCode;
+                    searchInv.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+    });
 
     async function loadFinanzasData() {
         if (isSuperadmin || !user.comercio) return;
@@ -274,7 +322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             diasEl.style.color = 'var(--danger)';
             document.getElementById('perfilRenovacionAlerta').style.display = 'block';
         } else {
-            diasEl.style.color = 'black';
+            diasEl.style.color = 'var(--text-primary)';
             document.getElementById('perfilRenovacionAlerta').style.display = 'none';
         }
         
