@@ -10,7 +10,19 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 window.dexterDB = {};
 
 try {
-  let supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  let centralSupabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  let tenantSupabase = null;
+
+  try {
+    const loggedUser = JSON.parse(sessionStorage.getItem('user'));
+    if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key) {
+        tenantSupabase = window.supabase.createClient(loggedUser.comercio.supabase_url, loggedUser.comercio.supabase_key);
+    }
+  } catch(e) { console.error(e); }
+
+  function getBusinessDB() {
+      return tenantSupabase || centralSupabase;
+  }
 
   function getActiveComercioId(explicitComercioId) {
     if (explicitComercioId) return explicitComercioId;
@@ -23,7 +35,7 @@ try {
 
   window.dexterDB.login = async (usuario, password) => {
     try {
-      if (!supabase) return { success: false, error: 'Supabase no cargó en el navegador (posible bloqueo por extensión).' };
+      if (!centralSupabase) return { success: false, error: 'Supabase no cargó en el navegador (posible bloqueo por extensión).' };
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('*, comercio:comercios(*)')
@@ -83,7 +95,7 @@ try {
   window.dexterDB.getProductos = async (comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = supabase.from('productos').select('*, variantes(*)');
+      let query = getBusinessDB().from('productos').select('*, variantes(*)');
       if (targetId) query = query.eq('comercio_id', targetId);
       const { data, error } = await query;
       if (error) throw error;
@@ -101,7 +113,7 @@ try {
 
   window.dexterDB.getProducto = async (id) => {
     try {
-      const { data, error } = await supabase.from('productos').select('*, variantes(*)').eq('id', id).single();
+      const { data, error } = await getBusinessDB().from('productos').select('*, variantes(*)').eq('id', id).single();
       if (error) throw error;
       const stockTotal = (data.variantes || []).reduce((sum, v) => sum + v.stock, 0);
       return {
@@ -123,13 +135,13 @@ try {
       const fileName = `${targetId}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await getBusinessDB().storage
         .from('productos')
         .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
       
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = getBusinessDB().storage
         .from('productos')
         .getPublicUrl(filePath);
 
@@ -150,14 +162,14 @@ try {
         categoria: producto.categoria, comercio_id: targetId, 
         imagen_url: producto.imagenUrl, imagen_url_2: producto.imagenUrl2, imagen_url_3: producto.imagenUrl3, imagen_url_4: producto.imagenUrl4
       };
-      const { data: prodData, error: prodErr } = await supabase.from('productos').insert([prodPayload]).select().single();
+      const { data: prodData, error: prodErr } = await getBusinessDB().from('productos').insert([prodPayload]).select().single();
       if (prodErr) throw prodErr;
       if (producto.variantes && producto.variantes.length > 0) {
         const varPayload = producto.variantes.map(v => ({
           producto_id: prodData.id, sku: v.sku || `${prodData.codigo}-${v.talla}-${v.color}`,
           talla: v.talla, color: v.color, stock: v.stock
         }));
-        await supabase.from('variantes').insert(varPayload);
+        await getBusinessDB().from('variantes').insert(varPayload);
       }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -170,15 +182,15 @@ try {
         precio_inventario: producto.precioInventario, precio_venta: producto.precioVenta, categoria: producto.categoria,
         imagen_url: producto.imagenUrl, imagen_url_2: producto.imagenUrl2, imagen_url_3: producto.imagenUrl3, imagen_url_4: producto.imagenUrl4
       };
-      const { error: prodErr } = await supabase.from('productos').update(prodPayload).eq('id', id);
+      const { error: prodErr } = await getBusinessDB().from('productos').update(prodPayload).eq('id', id);
       if (prodErr) throw prodErr;
-      await supabase.from('variantes').delete().eq('producto_id', id);
+      await getBusinessDB().from('variantes').delete().eq('producto_id', id);
       if (producto.variantes && producto.variantes.length > 0) {
         const varPayload = producto.variantes.map(v => ({
           producto_id: id, sku: v.sku || `${prodPayload.codigo}-${v.talla}-${v.color}`,
           talla: v.talla, color: v.color, stock: v.stock
         }));
-        await supabase.from('variantes').insert(varPayload);
+        await getBusinessDB().from('variantes').insert(varPayload);
       }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -186,7 +198,7 @@ try {
 
   window.dexterDB.deleteProducto = async (id) => {
     try {
-      const { error } = await supabase.from('productos').delete().eq('id', id);
+      const { error } = await getBusinessDB().from('productos').delete().eq('id', id);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -201,13 +213,13 @@ try {
         producto_id: item.producto_id, cantidad: item.cantidad, precio_unitario: item.precio_unitario,
         total: item.cantidad * item.precio_unitario, fecha: fecha, comercio_id: targetId
       }));
-      const { error: vErr } = await supabase.from('ventas').insert(ventasPayload);
+      const { error: vErr } = await getBusinessDB().from('ventas').insert(ventasPayload);
       if (vErr) throw vErr;
       for (const item of ventasArray) {
         if (item.variante_id) {
-          const { data: vData } = await supabase.from('variantes').select('stock').eq('id', item.variante_id).single();
+          const { data: vData } = await getBusinessDB().from('variantes').select('stock').eq('id', item.variante_id).single();
           if (vData) {
-            await supabase.from('variantes').update({ stock: Math.max(0, vData.stock - item.cantidad) }).eq('id', item.variante_id);
+            await getBusinessDB().from('variantes').update({ stock: Math.max(0, vData.stock - item.cantidad) }).eq('id', item.variante_id);
           }
         }
       }
@@ -218,7 +230,7 @@ try {
   window.dexterDB.getVentas = async (fechaInicio, fechaFin, comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = supabase.from('ventas').select('*');
+      let query = getBusinessDB().from('ventas').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
       if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
       const { data, error } = await query;
@@ -270,7 +282,7 @@ try {
   window.dexterDB.getGastos = async (fechaInicio = null, fechaFin = null, comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = supabase.from('gastos').select('*');
+      let query = getBusinessDB().from('gastos').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
       if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
       const { data, error } = await query.order('fecha', { ascending: false });
@@ -284,7 +296,7 @@ try {
       const targetId = getActiveComercioId(comercioId);
       if (!targetId) return { success: false, error: 'Comercio no especificado.' };
       const nuevo = { concepto: gasto.concepto, monto: parseFloat(gasto.monto), categoria: gasto.categoria, fecha: gasto.fecha || new Date().toISOString(), comercio_id: targetId };
-      const { error } = await supabase.from('gastos').insert([nuevo]);
+      const { error } = await getBusinessDB().from('gastos').insert([nuevo]);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -292,7 +304,7 @@ try {
 
   window.dexterDB.deleteGasto = async (id) => {
     try {
-      const { error } = await supabase.from('gastos').delete().eq('id', id);
+      const { error } = await getBusinessDB().from('gastos').delete().eq('id', id);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -325,7 +337,7 @@ try {
         // Si la fecha pasó y en DB sigue "activo", lo preparamos para actualizar
         if (fVenc < hoy && c.estado_suscripcion === 'activo') {
             actualizaciones.push(
-                supabase.from('comercios').update({ estado_suscripcion: 'vencido' }).eq('id', c.id)
+                centralSupabase.from('comercios').update({ estado_suscripcion: 'vencido' }).eq('id', c.id)
             );
             c.estado_suscripcion = 'vencido';
         }
@@ -369,7 +381,7 @@ try {
 
   window.dexterDB.addComercio = async (nombre, plan, fechaVencimiento, supabaseUrl, supabaseKey, dbConnectionString) => {
     try {
-      const { data, error } = await supabase.from('comercios').insert([{
+      const { data, error } = await centralSupabase.from('comercios').insert([{
         nombre, plan: plan || '1_mes', estado_suscripcion: 'activo',
         fecha_vencimiento: fechaVencimiento || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         supabase_url: supabaseUrl || null,
@@ -387,7 +399,7 @@ try {
       if (estado) updateData.estado_suscripcion = estado;
       if (plan) updateData.plan = plan;
       if (fechaVencimiento) updateData.fecha_vencimiento = fechaVencimiento;
-      const { data, error } = await supabase.from('comercios').update(updateData).eq('id', comercioId).select().single();
+      const { data, error } = await centralSupabase.from('comercios').update(updateData).eq('id', comercioId).select().single();
       if (error) throw error;
       try {
         const loggedUser = JSON.parse(sessionStorage.getItem('user'));
@@ -402,7 +414,7 @@ try {
 
   window.dexterDB.crearUsuarioComercio = async (usuario, password, nombre, rol, comercioId) => {
     try {
-      const { data, error } = await supabase.from('usuarios').insert([{
+      const { data, error } = await centralSupabase.from('usuarios').insert([{
         usuario, password, nombre, rol: rol || 'admin', comercio_id: comercioId
       }]).select().single();
       if (error) throw error;
@@ -418,7 +430,7 @@ try {
       if (!resComercio.success) return resComercio;
       const resUsuario = await window.dexterDB.crearUsuarioComercio(adminUsuario, adminPassword, adminNombre, 'admin', resComercio.comercio.id);
       if (!resUsuario.success) {
-        await supabase.from('comercios').delete().eq('id', resComercio.comercio.id);
+        await centralSupabase.from('comercios').delete().eq('id', resComercio.comercio.id);
         return { success: false, error: resUsuario.error };
       }
       return { success: true, comercio: resComercio.comercio, usuario: resUsuario.usuario };
@@ -428,9 +440,9 @@ try {
   window.dexterDB.deleteComercioCompleto = async (comercioId) => {
     try {
       // Borrar usuarios del comercio primero (por si no hay cascada)
-      await supabase.from('usuarios').delete().eq('comercio_id', comercioId);
+      await centralSupabase.from('usuarios').delete().eq('comercio_id', comercioId);
       // Borrar el comercio (esto debería borrar en cascada productos, ventas, etc., si está bien configurada la BD)
-      const { error } = await supabase.from('comercios').delete().eq('id', comercioId);
+      const { error } = await centralSupabase.from('comercios').delete().eq('id', comercioId);
       if (error) throw error;
       return { success: true };
     } catch (err) {
@@ -440,7 +452,7 @@ try {
 
   window.dexterDB.renovarComercio = async (comercioId, dias) => {
     try {
-      const { data, error } = await supabase.from('comercios').select('fecha_vencimiento').eq('id', comercioId).single();
+      const { data, error } = await centralSupabase.from('comercios').select('fecha_vencimiento').eq('id', comercioId).single();
       if (error || !data) throw error;
       let fechaActual = new Date(data.fecha_vencimiento);
       if (fechaActual < new Date()) fechaActual = new Date();
