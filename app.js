@@ -713,6 +713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let html = `<button class="tab-btn ${currentInventarioCategoria === 'TODAS' ? 'active' : ''}" data-categoria-inv="TODAS">TODAS</button>`;
         html += `<button class="tab-btn ${currentInventarioCategoria === 'SIN STOCK' ? 'active' : ''}" data-categoria-inv="SIN STOCK" style="color:var(--danger); border-color:var(--danger-glass);">SIN STOCK</button>`;
+        html += `<button class="tab-btn ${currentInventarioCategoria === 'STOCK < 3' ? 'active' : ''}" data-categoria-inv="STOCK < 3" style="color:var(--warning); border-color:rgba(245, 158, 11, 0.2);">STOCK < 3</button>`;
         
         categoriasArr.forEach(c => {
             html += `<button class="tab-btn ${currentInventarioCategoria === c ? 'active' : ''}" data-categoria-inv="${c}">${c}</button>`;
@@ -753,6 +754,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Filtro Categoría
         if (currentInventarioCategoria === 'SIN STOCK') {
             filtered = filtered.filter(p => p.stock <= 0);
+        } else if (currentInventarioCategoria === 'STOCK < 3') {
+            filtered = filtered.filter(p => p.stock < 3);
         } else if (currentInventarioCategoria !== 'TODAS') {
             filtered = filtered.filter(p => p.categoria && p.categoria.toUpperCase() === currentInventarioCategoria);
         }
