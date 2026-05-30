@@ -824,7 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     </td>
                     <td>${p.categoria}</td>
-                    <td>${variantesHTML || '<span style="color:var(--text-muted);">Sin variantes</span>'}</td>
+                    <td><div style="display:flex; flex-wrap:wrap; gap:4px; max-width:280px;">${variantesHTML || '<span style="color:var(--text-muted);">Sin variantes</span>'}</div></td>
                     <td><span class="badge ${p.stock <= 0 ? 'badge-danger' : 'badge-success'}">${p.stock} un.</span></td>
                     <td style="color:var(--text-muted);">$${(p.precioInventario || 0).toFixed(2)}</td>
                     <td style="color:var(--primary-emerald); font-weight:700;">$${(p.precioVenta || 0).toFixed(2)}</td>
