@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let barcodeBuffer = '';
     let barcodeTimer = null;
     
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
         // Ignorar si el foco está en un textarea para evitar borrar o saltar líneas sin querer
         if (e.target.tagName === 'TEXTAREA') return;
         
@@ -234,10 +234,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                     showToast('No Encontrado', 'El producto escaneado no está en el catálogo actual.', 'warning');
                 }
             } else if (activeSection.id === 'agregar') {
-                const inputCB = document.getElementById('codigo_barras');
-                if (inputCB) {
-                    inputCB.value = scannedCode;
-                    showToast('Escáner', 'Código de barras leído correctamente.', 'info');
+                // Buscar si ya existe el producto (primero en cache local)
+                let p = null;
+                if (typeof inventarioProductosCache !== 'undefined' && inventarioProductosCache.length > 0) {
+                    p = inventarioProductosCache.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
+                }
+                // Si no está en cache, buscar directamente a la base de datos para estar seguros
+                if (!p) {
+                    const todos = await window.electronAPI.getProductos();
+                    p = todos.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
+                }
+                
+                if (p) {
+                    if (confirm(`El producto "${p.nombre}" ya está registrado.\n¿Deseas abrirlo para actualizar su stock o precio?`)) {
+                        editarProducto(p.id);
+                    } else {
+                        const inputCB = document.getElementById('codigo_barras');
+                        if (inputCB) inputCB.value = scannedCode;
+                    }
+                } else {
+                    const inputCB = document.getElementById('codigo_barras');
+                    if (inputCB) {
+                        inputCB.value = scannedCode;
+                        showToast('Escáner', 'Nuevo código listo. Completa los datos para guardarlo.', 'info');
+                    }
                 }
             } else if (activeSection.id === 'inventario') {
                 const searchInv = document.getElementById('buscarInventario');
