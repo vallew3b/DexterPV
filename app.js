@@ -282,21 +282,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('perfilFechaVenc').textContent = fecha.toLocaleDateString();
     }
 
+    let globalCategoriasForm = [];
+
+    window.renderCategoriasSugeridas = (filtro = '') => {
+        const suggContainer = document.getElementById('categoriasSugeridas');
+        if (!suggContainer) return;
+        
+        let filtradas = globalCategoriasForm;
+        if (filtro) {
+            filtradas = filtradas.filter(c => c.toLowerCase().includes(filtro.toLowerCase()));
+        }
+        
+        suggContainer.innerHTML = filtradas.slice(0, 15).map(c => 
+            `<span class="badge" style="background:var(--bg-glass); cursor:pointer; padding:6px 10px; font-size:12px; border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary);" onclick="document.getElementById('categoria').value='${c}'; document.getElementById('categoria').dispatchEvent(new Event('input'))">${c}</span>`
+        ).join('');
+    };
+
     async function loadFormCategorias() {
         if (isSuperadmin) return;
         try {
             const todosLosProductos = await window.electronAPI.getProductos();
-            const uniqueCategories = [...new Set(todosLosProductos.map(p => p.categoria).filter(c => c))];
+            globalCategoriasForm = [...new Set(todosLosProductos.map(p => p.categoria).filter(c => c))];
+            
             const datalist = document.getElementById('categoriasList');
             if (datalist) {
-                datalist.innerHTML = uniqueCategories.map(c => `<option value="${c}">`).join('');
+                datalist.innerHTML = globalCategoriasForm.map(c => `<option value="${c}">`).join('');
             }
-            const suggContainer = document.getElementById('categoriasSugeridas');
-            if (suggContainer) {
-                suggContainer.innerHTML = uniqueCategories.map(c => 
-                    `<span class="badge" style="background:var(--bg-glass); cursor:pointer; padding:6px 10px; font-size:12px; border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary);" onclick="document.getElementById('categoria').value='${c}'; document.getElementById('categoria').dispatchEvent(new Event('input'))">${c}</span>`
-                ).join('');
-            }
+            window.renderCategoriasSugeridas('');
         } catch (e) {
             console.error('Error al cargar categorías form', e);
         }
@@ -1018,6 +1030,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('categoria')?.addEventListener('input', async (e) => {
         const val = e.target.value.trim();
+        
+        if (window.renderCategoriasSugeridas) {
+            window.renderCategoriasSugeridas(val);
+        }
+        
         const editId = document.getElementById('editProductId').value;
         if (!editId && val) { // Solo auto-generar si estamos creando un nuevo producto
             const nuevoCodigo = await generarCodigoInterno(val);
