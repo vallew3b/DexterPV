@@ -483,7 +483,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             productosFiltrados = productosFiltrados.filter(p =>
                 p.nombre.toLowerCase().includes(term) ||
                 p.codigo.toLowerCase().includes(term) ||
-                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term))
+                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term)) ||
+                (p.descripcion && p.descripcion.toLowerCase().includes(term))
             );
         }
 
@@ -759,7 +760,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered = filtered.filter(p => 
                 (p.nombre && p.nombre.toLowerCase().includes(currentInventarioSearch)) || 
                 (p.codigo && p.codigo.toLowerCase().includes(currentInventarioSearch)) ||
-                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(currentInventarioSearch))
+                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(currentInventarioSearch)) ||
+                (p.descripcion && p.descripcion.toLowerCase().includes(currentInventarioSearch))
             );
         }
 
