@@ -220,7 +220,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (activeSection.id === 'ventas') {
                 const p = currentPOSProducts.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
                 if (p) {
-                    openVariantSelector(p.id);
+                    const variantesDisponibles = (p.variantes || []).filter(v => v.stock > 0);
+                    if (variantesDisponibles.length === 1) {
+                        // Si solo hay una variante con stock, agregar directo al carrito
+                        addToCart(p.id, variantesDisponibles[0].id);
+                    } else {
+                        // Si hay varias (o cero), abrir el selector
+                        openVariantSelector(p.id);
+                    }
                     const searchBar = document.getElementById('buscarProducto');
                     if (searchBar) searchBar.value = '';
                 } else {
