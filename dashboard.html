@@ -1112,6 +1112,21 @@
         </div>
     </div>
 
+    <!-- MODAL: CONFIRMACIÓN PERSONALIZADA (PREMIUM) -->
+    <div id="customConfirmModal" class="modal" style="z-index:9999;">
+        <div class="modal-content glass-panel" style="max-width:400px; text-align:center;">
+            <div style="font-size:48px; color:var(--primary-emerald); margin-bottom:15px;">
+                <i class="fa-regular fa-circle-question"></i>
+            </div>
+            <h3 class="modal-title" id="customConfirmTitle" style="justify-content:center; margin-bottom:10px; font-size:18px;">Confirmación</h3>
+            <p id="customConfirmMessage" style="color:var(--text-secondary); margin-bottom:24px; line-height:1.6; font-size:14px;"></p>
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button class="btn btn-primary" id="btnCustomConfirmAceptar" style="flex:1; padding:12px;">Aceptar</button>
+                <button class="btn btn-secondary" id="btnCustomConfirmCancelar" style="flex:1; padding:12px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DB Layer and Application Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

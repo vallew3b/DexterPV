@@ -198,6 +198,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     let barcodeBuffer = '';
     let barcodeTimer = null;
     
+    function showCustomConfirm(title, message) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('customConfirmModal');
+            if (!modal) return resolve(confirm(message)); // Fallback si no existe el modal
+            
+            document.getElementById('customConfirmTitle').innerHTML = title;
+            document.getElementById('customConfirmMessage').innerHTML = message;
+            
+            const btnAceptar = document.getElementById('btnCustomConfirmAceptar');
+            const btnCancelar = document.getElementById('btnCustomConfirmCancelar');
+            
+            const handleAceptar = () => {
+                modal.classList.remove('active');
+                btnAceptar.removeEventListener('click', handleAceptar);
+                btnCancelar.removeEventListener('click', handleCancelar);
+                resolve(true);
+            };
+            
+            const handleCancelar = () => {
+                modal.classList.remove('active');
+                btnAceptar.removeEventListener('click', handleAceptar);
+                btnCancelar.removeEventListener('click', handleCancelar);
+                resolve(false);
+            };
+            
+            btnAceptar.addEventListener('click', handleAceptar);
+            btnCancelar.addEventListener('click', handleCancelar);
+            
+            modal.classList.add('active');
+        });
+    }
+
     document.addEventListener('keydown', async (e) => {
         // Ignorar si el foco está en un textarea para evitar borrar o saltar líneas sin querer
         if (e.target.tagName === 'TEXTAREA') return;
@@ -246,7 +278,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 
                 if (p) {
-                    if (confirm(`El producto "${p.nombre}" ya está registrado.\n¿Deseas abrirlo para actualizar su stock o precio?`)) {
+                    const deseaEditar = await showCustomConfirm(
+                        '<i class="fa-solid fa-boxes-stacked"></i> Producto Existente', 
+                        `El producto <strong>"${p.nombre}"</strong> ya está registrado.<br><br>¿Deseas abrirlo para actualizar su stock o precio?`
+                    );
+                    
+                    if (deseaEditar) {
                         editarProducto(p.id);
                     } else {
                         const inputCB = document.getElementById('codigo_barras');
