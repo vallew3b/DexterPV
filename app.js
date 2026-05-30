@@ -810,14 +810,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <tr>
                     <td><span class="badge" style="background:rgba(255,255,255,0.05);">${p.codigo}</span></td>
-                    <td style="font-weight:600; display:flex; align-items:center; gap:10px;">
-                        ${p.imagen_url
-                    ? `<div style="position:relative; width:36px; height:36px; cursor:zoom-in;" onclick="verFoto('${fotosParam}')" title="Clic para expandir">
-                          <img src="${p.imagen_url}" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(0,0,0,0.1);">
-                          ${fotosArray.length > 1 ? `<span style="position:absolute; bottom:-4px; right:-4px; background:var(--primary-emerald); color:white; font-size:9px; font-weight:bold; padding:2px 4px; border-radius:4px;">+${fotosArray.length-1}</span>` : ''}
-                       </div>`
-                    : `<div style="width:36px; height:36px; border-radius:6px; background:var(--bg-glass); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); border:1px solid rgba(0,0,0,0.1);">${p.nombre.substring(0, 2).toUpperCase()}</div>`}
-                        ${p.nombre}
+                    <td style="font-weight:600;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${p.imagen_url
+                        ? `<div style="position:relative; width:36px; height:36px; cursor:zoom-in;" onclick="verFoto('${fotosParam}')" title="Clic para expandir">
+                              <img src="${p.imagen_url}" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(0,0,0,0.1);">
+                              ${fotosArray.length > 1 ? `<span style="position:absolute; bottom:-4px; right:-4px; background:var(--primary-emerald); color:white; font-size:9px; font-weight:bold; padding:2px 4px; border-radius:4px;">+${fotosArray.length-1}</span>` : ''}
+                           </div>`
+                        : `<div style="width:36px; height:36px; border-radius:6px; background:var(--bg-glass); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); border:1px solid rgba(0,0,0,0.1);">${p.nombre.substring(0, 2).toUpperCase()}</div>`}
+                            <span>${p.nombre}</span>
+                        </div>
                     </td>
                     <td>${p.categoria}</td>
                     <td>${variantesHTML || '<span style="color:var(--text-muted);">Sin variantes</span>'}</td>
