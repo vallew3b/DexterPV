@@ -297,8 +297,9 @@ try {
       } else if (!varianteId && cantidadRestock > 0 && precioInventario > 0) {
         // Registrar Merma (Gasto)
         const gasto = {
-          descripcion: `Merma / Producto Dañado - ${productName}`,
+          concepto: `Merma / Producto Dañado - ${productName}`,
           monto: cantidadRestock * precioInventario,
+          categoria: 'Merma',
           fecha: new Date().toISOString(),
           comercio_id: vRecord.comercio_id
         };
