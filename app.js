@@ -528,19 +528,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const p = prodMap.get(v.producto_id);
             const date = new Date(v.fecha);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isDevolucion = v.cantidad < 0;
+            const trStyle = isDevolucion ? 'background: rgba(239, 68, 68, 0.05);' : '';
+            const actionBtn = isDevolucion ? 
+                `<span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger-red);">Devolución</span>` : 
+                `<button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${v.cantidad})" title="Anular venta y devolver dinero"><i class="fa-solid fa-rotate-left"></i> Anular</button>`;
+            
             return `
-                <tr>
+                <tr style="${trStyle}">
                     <td>${date.toLocaleDateString()} <span style="color:var(--text-muted); font-size:11px;">${timeStr}</span></td>
                     <td><span class="badge" style="background:rgba(255,255,255,0.05);">${p ? p.codigo : 'N/A'}</span></td>
-                    <td style="font-weight:600;">${p ? p.nombre : 'Producto Eliminado'}</td>
-                    <td>${v.cantidad} un.</td>
+                    <td style="font-weight:600; ${isDevolucion ? 'color:var(--danger-red);' : ''}">${p ? p.nombre : 'Producto Eliminado'}</td>
+                    <td style="${isDevolucion ? 'color:var(--danger-red);' : ''}">${v.cantidad} un.</td>
                     <td style="color:var(--primary-emerald);">$${v.precio_unitario.toFixed(2)}</td>
-                    <td style="font-weight:700;">$${(v.total || (v.cantidad * v.precio_unitario)).toFixed(2)}</td>
-                    <td>
-                        <button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${v.cantidad})" title="Anular venta y devolver dinero">
-                            <i class="fa-solid fa-rotate-left"></i> Anular
-                        </button>
-                    </td>
+                    <td style="font-weight:700; ${isDevolucion ? 'color:var(--danger-red);' : ''}">$${(v.total || (v.cantidad * v.precio_unitario)).toFixed(2)}</td>
+                    <td>${actionBtn}</td>
                 </tr>
             `;
         }).join('');
@@ -577,6 +579,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('rvCantidadAnular').max = cantidad;
         document.getElementById('rvProductName').textContent = productoNombre;
         document.getElementById('rvQuantity').textContent = cantidad;
+        // Guardamos el precioInventario en un dataset temporal
+        document.getElementById('rvProductName').dataset.precioInventario = p.precioInventario || p.precio_inventario || 0;
 
         const select = document.getElementById('rvSelectVariante');
         select.innerHTML = `<option value="">-- No reponer stock (solo anular venta) --</option>`;
@@ -602,7 +606,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (cantidadAnular < 1) cantidadAnular = 1;
         if (cantidadAnular > maxCantidad) cantidadAnular = maxCantidad;
 
-        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidadAnular);
+        const productoNombre = document.getElementById('rvProductName').textContent;
+        const precioInventario = parseFloat(document.getElementById('rvProductName').dataset.precioInventario) || 0;
+
+        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidadAnular, precioInventario, productoNombre);
         if (res.success) {
             if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
             else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');

@@ -270,26 +270,40 @@ try {
     } catch (err) { return []; }
   };
 
-  window.dexterDB.returnVenta = async (ventaId, varianteId, cantidadRestock) => {
+  window.dexterDB.returnVenta = async (ventaId, varianteId, cantidadRestock, precioInventario = 0, productName = '') => {
     try {
       const { data: vRecord, error: vErr } = await getBusinessDB().from('ventas').select('*').eq('id', ventaId).single();
       if (vErr) throw vErr;
 
-      if (cantidadRestock >= vRecord.cantidad) {
-        const { error } = await getBusinessDB().from('ventas').delete().eq('id', ventaId);
-        if (error) throw error;
-      } else {
-        const nuevaCantidad = vRecord.cantidad - cantidadRestock;
-        const nuevoTotal = nuevaCantidad * vRecord.precio_unitario;
-        const { error } = await getBusinessDB().from('ventas').update({ cantidad: nuevaCantidad, total: nuevoTotal }).eq('id', ventaId);
-        if (error) throw error;
-      }
+      // Crear ticket negativo
+      const negativeVenta = {
+        producto_id: vRecord.producto_id,
+        cantidad: -cantidadRestock,
+        precio_unitario: vRecord.precio_unitario,
+        total: -(cantidadRestock * vRecord.precio_unitario),
+        fecha: new Date().toISOString(),
+        comercio_id: vRecord.comercio_id
+      };
+      
+      const { error: insertErr } = await getBusinessDB().from('ventas').insert([negativeVenta]);
+      if (insertErr) throw insertErr;
 
       if (varianteId && cantidadRestock > 0) {
+        // Reponer stock
         const { data: vData } = await getBusinessDB().from('variantes').select('stock').eq('id', varianteId).single();
         if (vData) {
           await getBusinessDB().from('variantes').update({ stock: vData.stock + cantidadRestock }).eq('id', varianteId);
         }
+      } else if (!varianteId && cantidadRestock > 0 && precioInventario > 0) {
+        // Registrar Merma (Gasto)
+        const gasto = {
+          descripcion: `Merma / Producto Dañado - ${productName}`,
+          monto: cantidadRestock * precioInventario,
+          fecha: new Date().toISOString(),
+          comercio_id: vRecord.comercio_id
+        };
+        const { error: gastoErr } = await getBusinessDB().from('gastos').insert([gasto]);
+        if (gastoErr) throw gastoErr;
       }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
