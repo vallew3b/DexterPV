@@ -453,6 +453,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const stats = await window.electronAPI.getEstadisticas();
             document.getElementById('statVentasHoy').textContent = `$${stats.ventasHoy.toFixed(2)}`;
+            const statDev = document.getElementById('statDevolucionesHoy');
+            if (statDev) statDev.textContent = `$${(stats.devolucionesHoy || 0).toFixed(2)}`;
             document.getElementById('statGanancias').textContent = `$${stats.gananciasTotales.toFixed(2)}`;
             document.getElementById('statInventarioTotal').textContent = `$${stats.inventarioTotal.toFixed(2)}`;
             document.getElementById('statTotalProductos').textContent = stats.totalProductos;

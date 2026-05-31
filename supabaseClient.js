@@ -325,6 +325,7 @@ try {
       });
       const hoyStr = new Date().toISOString().split('T')[0];
       const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoyStr).reduce((sum, v) => sum + (v.total || 0), 0);
+      const devolucionesHoy = Math.abs(ventas.filter(v => v.fecha.split('T')[0] === hoyStr && (v.total < 0)).reduce((sum, v) => sum + (v.total || 0), 0));
       
       // Gráfica últimos 6 meses
       const grafico = { labels: [], data: [] };
@@ -343,8 +344,11 @@ try {
       }
 
       return {
-        totalProductos, inventarioTotal: parseFloat(inventarioTotal.toFixed(2)),
-        gananciasTotales: parseFloat(gananciasTotales.toFixed(2)), ventasHoy: parseFloat(ventasHoy.toFixed(2)),
+        totalProductos,
+        inventarioTotal: parseFloat(inventarioTotal.toFixed(2)),
+        ventasHoy: parseFloat(ventasHoy.toFixed(2)),
+        devolucionesHoy: parseFloat(devolucionesHoy.toFixed(2)),
+        gananciasTotales: parseFloat(gananciasTotales.toFixed(2)),
         grafico
       };
     } catch (err) { return { totalProductos:0, inventarioTotal:0, gananciasTotales:0, ventasHoy:0, grafico: {labels:[], data:[]} }; }
