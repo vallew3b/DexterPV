@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('rvVentaId').value = ventaId;
         document.getElementById('rvMaxCantidad').value = cantidad;
-        document.getElementById('rvCantidadAnular').value = cantidad;
+        document.getElementById('rvCantidadAnular').value = cantidad === 1 ? 1 : '';
         document.getElementById('rvCantidadAnular').max = cantidad;
         document.getElementById('rvProductName').textContent = productoNombre;
         document.getElementById('rvQuantity').textContent = cantidad;
