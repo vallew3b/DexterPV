@@ -547,7 +547,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     window.anularVenta = async (ventaId, productoId, productoNombre, cantidad) => {
-        const p = typeof inventarioProductosCache !== 'undefined' ? inventarioProductosCache.find(x => x.id == productoId) : await window.electronAPI.getProducto(productoId);
+        let p = null;
+        if (typeof inventarioProductosCache !== 'undefined') {
+            p = inventarioProductosCache.find(x => x.id == productoId);
+        }
+        if (!p) {
+            p = await window.electronAPI.getProducto(productoId);
+        }
         
         if (!p) {
             const confirmar = await showCustomConfirm(
