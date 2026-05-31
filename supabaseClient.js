@@ -13,10 +13,17 @@ try {
   let centralSupabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
   let tenantSupabase = null;
 
+  // Función para limpiar la URL (quitar /rest/v1/ si el usuario lo puso por error)
+  function cleanSupabaseUrl(url) {
+      if (!url) return url;
+      return url.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  }
+
   try {
     const loggedUser = JSON.parse(sessionStorage.getItem('user'));
     if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key) {
-        tenantSupabase = window.supabase.createClient(loggedUser.comercio.supabase_url, loggedUser.comercio.supabase_key);
+        const cleanUrl = cleanSupabaseUrl(loggedUser.comercio.supabase_url);
+        tenantSupabase = window.supabase.createClient(cleanUrl, loggedUser.comercio.supabase_key);
     }
   } catch(e) { console.error(e); }
 
@@ -74,6 +81,13 @@ try {
                 
             comercioInfo.estado_suscripcion = 'vencido';
         }
+      }
+
+      if (comercioInfo && comercioInfo.supabase_url && comercioInfo.supabase_key) {
+          const cleanUrl = cleanSupabaseUrl(comercioInfo.supabase_url);
+          tenantSupabase = window.supabase.createClient(cleanUrl, comercioInfo.supabase_key);
+      } else {
+          tenantSupabase = null;
       }
 
       return {
