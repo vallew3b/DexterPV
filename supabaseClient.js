@@ -24,6 +24,15 @@ try {
     if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key) {
         const cleanUrl = cleanSupabaseUrl(loggedUser.comercio.supabase_url);
         tenantSupabase = window.supabase.createClient(cleanUrl, loggedUser.comercio.supabase_key);
+        
+        // Auto-sincronizar el registro del comercio a la base independiente para evitar Foreign Key constraint error
+        tenantSupabase.from('comercios').upsert({
+            id: loggedUser.comercio.id,
+            nombre: loggedUser.comercio.nombre,
+            plan: loggedUser.comercio.plan,
+            estado_suscripcion: loggedUser.comercio.estado_suscripcion,
+            fecha_vencimiento: loggedUser.comercio.fecha_vencimiento
+        }).then().catch(e => console.error(e));
     }
   } catch(e) { console.error(e); }
 
@@ -86,6 +95,14 @@ try {
       if (comercioInfo && comercioInfo.supabase_url && comercioInfo.supabase_key) {
           const cleanUrl = cleanSupabaseUrl(comercioInfo.supabase_url);
           tenantSupabase = window.supabase.createClient(cleanUrl, comercioInfo.supabase_key);
+          
+          tenantSupabase.from('comercios').upsert({
+              id: comercioInfo.id,
+              nombre: comercioInfo.nombre,
+              plan: comercioInfo.plan,
+              estado_suscripcion: comercioInfo.estado_suscripcion,
+              fecha_vencimiento: comercioInfo.fecha_vencimiento
+          }).then().catch(e => console.error(e));
       } else {
           tenantSupabase = null;
       }
