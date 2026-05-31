@@ -23,8 +23,9 @@ try {
 
   window.dexterDB.login = async (usuario, password) => {
     try {
-      if (!supabase) return { success: false, error: 'Supabase no cargó en el navegador (posible bloqueo por extensión).' };
-      const { data: usuarios, error } = await centralSupabase\n        .from('usuarios')
+      if (!centralSupabase) return { success: false, error: 'Supabase no cargó en el navegador (posible bloqueo por extensión).' };
+      const { data: usuarios, error } = await centralSupabase
+        .from('usuarios')
         .select('*, comercio:comercios(*)')
         .eq('usuario', usuario)
         .eq('password', password);
@@ -54,7 +55,8 @@ try {
         
         // Si la fecha actual ya superó la fecha de vencimiento y no está vencido en DB, lo actualizamos.
         if (hoy > fechaVencimiento && comercioInfo.estado_suscripcion === 'activo') {
-            await centralSupabase\n                .from('comercios')
+            await centralSupabase
+                .from('comercios')
                 .update({ estado_suscripcion: 'vencido' })
                 .eq('id', comercioInfo.id);
                 
