@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const titles = {
             'inicio': 'Dashboard Principal',
             'ventas': 'Punto de Venta (POS)',
+            'historial': 'Historial de Ventas',
             'inventario': 'Control de Inventario',
             'agregar': 'Gestión de Productos',
             'gastos': 'Inversiones y OPEX',
@@ -183,6 +184,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Cargar datos según sección
         if (sectionId === 'inicio') loadDashboardData();
         else if (sectionId === 'ventas') loadPOSCatalog();
+        else if (sectionId === 'historial') {
+            const hoyStr = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaHistorial').value = hoyStr;
+            loadHistorialVentas(hoyStr, hoyStr);
+        }
         else if (sectionId === 'inventario') loadInventarioTable();
         else if (sectionId === 'gastos') loadGastosTable();
         else if (sectionId === 'superadmin-panel') loadSuperadminData();
@@ -507,14 +513,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadHistorialVentas(start, end) {
         const tbody = document.getElementById('ventasTableBody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Cargando historial...</td></tr>';
 
         const ventas = await window.electronAPI.getVentas(start, end);
         const productos = await window.electronAPI.getProductos();
         const prodMap = new Map(productos.map(p => [p.id, p]));
 
         if (ventas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay ventas registradas en esta fecha.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No hay ventas registradas en esta fecha.</td></tr>';
             return;
         }
 
@@ -530,10 +536,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>${v.cantidad} un.</td>
                     <td style="color:var(--primary-emerald);">$${v.precio_unitario.toFixed(2)}</td>
                     <td style="font-weight:700;">$${(v.total || (v.cantidad * v.precio_unitario)).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}')" title="Anular venta y devolver dinero">
+                            <i class="fa-solid fa-rotate-left"></i> Anular
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join('');
     }
+
+    window.anularVenta = async (ventaId, productoNombre) => {
+        const confirmar = await showCustomConfirm(
+            '<i class="fa-solid fa-triangle-exclamation"></i> Anular Venta', 
+            `¿Estás seguro de anular la venta de <strong>"${productoNombre}"</strong>?<br><br>` + 
+            `<span style="color:var(--warning);">Esto eliminará el registro financiero de tus ventas.</span><br><br>` + 
+            `<strong>IMPORTANTE:</strong> Deberás ir a la sección de Inventario para reponer el stock manualmente.`
+        );
+        
+        if (confirmar) {
+            const res = await window.electronAPI.deleteVenta(ventaId);
+            if (res.success) {
+                showToast('Venta Anulada', 'La venta ha sido anulada. Recuerda ajustar tu stock.', 'info');
+                const fecha = document.getElementById('fechaHistorial').value;
+                if (fecha) loadHistorialVentas(fecha, fecha);
+            } else {
+                showToast('Error', 'No se pudo anular la venta: ' + res.error, 'error');
+            }
+        }
+    };
 
     // =========================================================
     // PUNTO DE VENTA (POS) Y CARRITO

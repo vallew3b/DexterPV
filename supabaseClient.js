@@ -270,6 +270,14 @@ try {
     } catch (err) { return []; }
   };
 
+  window.dexterDB.deleteVenta = async (id) => {
+    try {
+      const { error } = await getBusinessDB().from('ventas').delete().eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  };
+
   window.dexterDB.getEstadisticas = async (comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);

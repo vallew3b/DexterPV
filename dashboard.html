@@ -70,6 +70,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" data-section="historial">
+                                <i class="fa-solid fa-clock-rotate-left"></i> <span>Historial de Ventas</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" data-section="inventario">
                                 <i class="fa-solid fa-boxes-stacked"></i> <span>Inventario</span>
                             </a>
@@ -214,10 +219,15 @@
                         </div>
                     </div>
 
-                    <!-- Buscador e historial de ventas -->
-                    <div class="glass-panel" style="padding: 24px; margin-top: 24px;">
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: HISTORIAL DE VENTAS
+                     ================================================== -->
+                <section id="historial" class="content-section">
+                    <div class="glass-panel" style="padding: 24px;">
                         <h3 style="margin-bottom: 20px; font-weight: 700; color: var(--text-primary);">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Historial de Ventas Diarias
+                            <i class="fa-solid fa-clock-rotate-left"></i> Historial de Ventas
                         </h3>
                         <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
                             <input class="form-input" type="date" id="fechaHistorial" style="max-width: 250px; padding: 10px 16px 10px 16px;">
@@ -236,11 +246,12 @@
                                         <th>Cantidad</th>
                                         <th>Precio Unitario</th>
                                         <th>Total</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ventasTableBody">
                                     <tr>
-                                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">
                                             Selecciona una fecha para ver el historial
                                         </td>
                                     </tr>
