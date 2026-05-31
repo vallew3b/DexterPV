@@ -1169,6 +1169,34 @@
         </div>
     </div>
 
+    <!-- MODAL: DEVOLUCIÓN DE VENTA (SELECCIÓN DE VARIANTE) -->
+    <div id="returnVariantModal" class="modal" style="z-index:9999;">
+        <div class="modal-content glass-panel" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-rotate-left"></i> Anular y Reponer Stock</h3>
+                <button class="modal-close" onclick="closeReturnVariantModal()">&times;</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                Estás anulando la venta de <strong id="rvProductName"></strong> por <strong id="rvQuantity"></strong> unidad(es).<br><br>
+                Selecciona a qué variante (talla/color) deseas regresarle el stock (o selecciona 'No reponer' si hubo merma):
+            </p>
+            <input type="hidden" id="rvVentaId">
+            <input type="hidden" id="rvCantidad">
+            <div class="form-group">
+                <label class="form-label">Variante a reponer</label>
+                <div class="input-wrapper">
+                    <select class="form-input" id="rvSelectVariante" style="padding-left:16px;">
+                        <!-- Opciones generadas dinámicamente -->
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn btn-danger" id="btnConfirmReturnVariant" style="flex:1;">Confirmar Anulación</button>
+                <button class="btn btn-secondary" onclick="closeReturnVariantModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DB Layer and Application Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

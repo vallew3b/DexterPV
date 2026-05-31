@@ -270,10 +270,17 @@ try {
     } catch (err) { return []; }
   };
 
-  window.dexterDB.deleteVenta = async (id) => {
+  window.dexterDB.returnVenta = async (ventaId, varianteId, cantidad) => {
     try {
-      const { error } = await getBusinessDB().from('ventas').delete().eq('id', id);
+      const { error } = await getBusinessDB().from('ventas').delete().eq('id', ventaId);
       if (error) throw error;
+
+      if (varianteId && cantidad > 0) {
+        const { data: vData } = await getBusinessDB().from('variantes').select('stock').eq('id', varianteId).single();
+        if (vData) {
+          await getBusinessDB().from('variantes').update({ stock: vData.stock + cantidad }).eq('id', varianteId);
+        }
+      }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
   };

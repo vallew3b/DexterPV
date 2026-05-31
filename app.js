@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td style="color:var(--primary-emerald);">$${v.precio_unitario.toFixed(2)}</td>
                     <td style="font-weight:700;">$${(v.total || (v.cantidad * v.precio_unitario)).toFixed(2)}</td>
                     <td>
-                        <button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}')" title="Anular venta y devolver dinero">
+                        <button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${v.cantidad})" title="Anular venta y devolver dinero">
                             <i class="fa-solid fa-rotate-left"></i> Anular
                         </button>
                     </td>
@@ -546,25 +546,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).join('');
     }
 
-    window.anularVenta = async (ventaId, productoNombre) => {
-        const confirmar = await showCustomConfirm(
-            '<i class="fa-solid fa-triangle-exclamation"></i> Anular Venta', 
-            `¿Estás seguro de anular la venta de <strong>"${productoNombre}"</strong>?<br><br>` + 
-            `<span style="color:var(--warning);">Esto eliminará el registro financiero de tus ventas.</span><br><br>` + 
-            `<strong>IMPORTANTE:</strong> Deberás ir a la sección de Inventario para reponer el stock manualmente.`
-        );
+    window.anularVenta = async (ventaId, productoId, productoNombre, cantidad) => {
+        const p = typeof inventarioProductosCache !== 'undefined' ? inventarioProductosCache.find(x => x.id == productoId) : await window.electronAPI.getProducto(productoId);
         
-        if (confirmar) {
-            const res = await window.electronAPI.deleteVenta(ventaId);
-            if (res.success) {
-                showToast('Venta Anulada', 'La venta ha sido anulada. Recuerda ajustar tu stock.', 'info');
-                const fecha = document.getElementById('fechaHistorial').value;
-                if (fecha) loadHistorialVentas(fecha, fecha);
-            } else {
-                showToast('Error', 'No se pudo anular la venta: ' + res.error, 'error');
+        if (!p) {
+            const confirmar = await showCustomConfirm(
+                '<i class="fa-solid fa-triangle-exclamation"></i> Anular Venta', 
+                `¿Anular la venta de <strong>"${productoNombre}"</strong>?<br><br>El producto ya no existe en tu inventario, por lo que solo se eliminará el registro financiero.`
+            );
+            if (confirmar) {
+                const res = await window.electronAPI.returnVenta(ventaId, null, 0);
+                if (res.success) {
+                    showToast('Venta Anulada', 'La venta ha sido anulada financieramente.', 'info');
+                    const fecha = document.getElementById('fechaHistorial').value;
+                    if (fecha) loadHistorialVentas(fecha, fecha);
+                } else showToast('Error', 'No se pudo anular: ' + res.error, 'error');
             }
+            return;
         }
+
+        document.getElementById('rvVentaId').value = ventaId;
+        document.getElementById('rvCantidad').value = cantidad;
+        document.getElementById('rvProductName').textContent = productoNombre;
+        document.getElementById('rvQuantity').textContent = cantidad;
+
+        const select = document.getElementById('rvSelectVariante');
+        select.innerHTML = `<option value="">-- No reponer stock (solo anular venta) --</option>`;
+        if (p.variantes && p.variantes.length > 0) {
+            p.variantes.forEach(v => {
+                select.innerHTML += `<option value="${v.id}">${v.talla} / ${v.color} (Stock actual: ${v.stock})</option>`;
+            });
+        }
+        
+        document.getElementById('returnVariantModal').classList.add('active');
     };
+
+    window.closeReturnVariantModal = () => {
+        document.getElementById('returnVariantModal').classList.remove('active');
+    };
+
+    document.getElementById('btnConfirmReturnVariant')?.addEventListener('click', async () => {
+        const ventaId = document.getElementById('rvVentaId').value;
+        const cantidad = parseInt(document.getElementById('rvCantidad').value) || 0;
+        const varianteId = document.getElementById('rvSelectVariante').value;
+
+        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidad);
+        if (res.success) {
+            if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
+            else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');
+            
+            closeReturnVariantModal();
+            const fecha = document.getElementById('fechaHistorial').value;
+            if (fecha) loadHistorialVentas(fecha, fecha);
+            if (document.getElementById('inventario') && document.getElementById('inventario').classList.contains('active')) {
+                loadInventarioTable();
+            }
+        } else {
+            showToast('Error', 'No se pudo anular: ' + res.error, 'error');
+        }
+    });
 
     // =========================================================
     // PUNTO DE VENTA (POS) Y CARRITO
