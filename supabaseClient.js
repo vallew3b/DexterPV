@@ -109,7 +109,7 @@ try {
   window.dexterDB.getProductos = async (comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = centralSupabase.from('productos').select('*, variantes(*)');
+      let query = getBusinessDB().from('productos').select('*, variantes(*)');
       if (targetId) query = query.eq('comercio_id', targetId);
       const { data, error } = await query;
       if (error) throw error;
@@ -127,7 +127,7 @@ try {
 
   window.dexterDB.getProducto = async (id) => {
     try {
-      const { data, error } = await centralSupabase.from('productos').select('*, variantes(*)').eq('id', id).single();
+      const { data, error } = await getBusinessDB().from('productos').select('*, variantes(*)').eq('id', id).single();
       if (error) throw error;
       const stockTotal = (data.variantes || []).reduce((sum, v) => sum + v.stock, 0);
       return {
@@ -149,13 +149,13 @@ try {
       const fileName = `${targetId}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { data, error } = await centralSupabase.storage
+      const { data, error } = await getBusinessDB().storage
         .from('productos')
         .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
       if (error) throw error;
       
-      const { data: publicUrlData } = centralSupabase.storage
+      const { data: publicUrlData } = getBusinessDB().storage
         .from('productos')
         .getPublicUrl(filePath);
 
@@ -176,14 +176,14 @@ try {
         categoria: producto.categoria, comercio_id: targetId, 
         imagen_url: producto.imagenUrl, imagen_url_2: producto.imagenUrl2, imagen_url_3: producto.imagenUrl3, imagen_url_4: producto.imagenUrl4
       };
-      const { data: prodData, error: prodErr } = await centralSupabase.from('productos').insert([prodPayload]).select().single();
+      const { data: prodData, error: prodErr } = await getBusinessDB().from('productos').insert([prodPayload]).select().single();
       if (prodErr) throw prodErr;
       if (producto.variantes && producto.variantes.length > 0) {
         const varPayload = producto.variantes.map(v => ({
           producto_id: prodData.id, sku: v.sku || `${prodData.codigo}-${v.talla}-${v.color}`,
           talla: v.talla, color: v.color, stock: v.stock
         }));
-        await centralSupabase.from('variantes').insert(varPayload);
+        await getBusinessDB().from('variantes').insert(varPayload);
       }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -196,15 +196,15 @@ try {
         precio_inventario: producto.precioInventario, precio_venta: producto.precioVenta, categoria: producto.categoria,
         imagen_url: producto.imagenUrl, imagen_url_2: producto.imagenUrl2, imagen_url_3: producto.imagenUrl3, imagen_url_4: producto.imagenUrl4
       };
-      const { error: prodErr } = await centralSupabase.from('productos').update(prodPayload).eq('id', id);
+      const { error: prodErr } = await getBusinessDB().from('productos').update(prodPayload).eq('id', id);
       if (prodErr) throw prodErr;
-      await centralSupabase.from('variantes').delete().eq('producto_id', id);
+      await getBusinessDB().from('variantes').delete().eq('producto_id', id);
       if (producto.variantes && producto.variantes.length > 0) {
         const varPayload = producto.variantes.map(v => ({
           producto_id: id, sku: v.sku || `${prodPayload.codigo}-${v.talla}-${v.color}`,
           talla: v.talla, color: v.color, stock: v.stock
         }));
-        await centralSupabase.from('variantes').insert(varPayload);
+        await getBusinessDB().from('variantes').insert(varPayload);
       }
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -212,7 +212,7 @@ try {
 
   window.dexterDB.deleteProducto = async (id) => {
     try {
-      const { error } = await centralSupabase.from('productos').delete().eq('id', id);
+      const { error } = await getBusinessDB().from('productos').delete().eq('id', id);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -227,13 +227,13 @@ try {
         producto_id: item.producto_id, cantidad: item.cantidad, precio_unitario: item.precio_unitario,
         total: item.cantidad * item.precio_unitario, fecha: fecha, comercio_id: targetId
       }));
-      const { error: vErr } = await centralSupabase.from('ventas').insert(ventasPayload);
+      const { error: vErr } = await getBusinessDB().from('ventas').insert(ventasPayload);
       if (vErr) throw vErr;
       for (const item of ventasArray) {
         if (item.variante_id) {
-          const { data: vData } = await centralSupabase.from('variantes').select('stock').eq('id', item.variante_id).single();
+          const { data: vData } = await getBusinessDB().from('variantes').select('stock').eq('id', item.variante_id).single();
           if (vData) {
-            await centralSupabase.from('variantes').update({ stock: Math.max(0, vData.stock - item.cantidad) }).eq('id', item.variante_id);
+            await getBusinessDB().from('variantes').update({ stock: Math.max(0, vData.stock - item.cantidad) }).eq('id', item.variante_id);
           }
         }
       }
@@ -244,7 +244,7 @@ try {
   window.dexterDB.getVentas = async (fechaInicio, fechaFin, comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = centralSupabase.from('ventas').select('*');
+      let query = getBusinessDB().from('ventas').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
       if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
       const { data, error } = await query;
@@ -296,7 +296,7 @@ try {
   window.dexterDB.getGastos = async (fechaInicio = null, fechaFin = null, comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
-      let query = centralSupabase.from('gastos').select('*');
+      let query = getBusinessDB().from('gastos').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
       if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
       const { data, error } = await query.order('fecha', { ascending: false });
@@ -310,7 +310,7 @@ try {
       const targetId = getActiveComercioId(comercioId);
       if (!targetId) return { success: false, error: 'Comercio no especificado.' };
       const nuevo = { concepto: gasto.concepto, monto: parseFloat(gasto.monto), categoria: gasto.categoria, fecha: gasto.fecha || new Date().toISOString(), comercio_id: targetId };
-      const { error } = await centralSupabase.from('gastos').insert([nuevo]);
+      const { error } = await getBusinessDB().from('gastos').insert([nuevo]);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
@@ -318,7 +318,7 @@ try {
 
   window.dexterDB.deleteGasto = async (id) => {
     try {
-      const { error } = await centralSupabase.from('gastos').delete().eq('id', id);
+      const { error } = await getBusinessDB().from('gastos').delete().eq('id', id);
       if (error) throw error;
       return { success: true };
     } catch (err) { return { success: false, error: err.message }; }
