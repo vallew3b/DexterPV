@@ -572,7 +572,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         document.getElementById('rvVentaId').value = ventaId;
-        document.getElementById('rvCantidad').value = cantidad;
+        document.getElementById('rvMaxCantidad').value = cantidad;
+        document.getElementById('rvCantidadAnular').value = cantidad;
+        document.getElementById('rvCantidadAnular').max = cantidad;
         document.getElementById('rvProductName').textContent = productoNombre;
         document.getElementById('rvQuantity').textContent = cantidad;
 
@@ -593,10 +595,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnConfirmReturnVariant')?.addEventListener('click', async () => {
         const ventaId = document.getElementById('rvVentaId').value;
-        const cantidad = parseInt(document.getElementById('rvCantidad').value) || 0;
+        const maxCantidad = parseInt(document.getElementById('rvMaxCantidad').value) || 0;
+        let cantidadAnular = parseInt(document.getElementById('rvCantidadAnular').value) || 0;
         const varianteId = document.getElementById('rvSelectVariante').value;
 
-        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidad);
+        if (cantidadAnular < 1) cantidadAnular = 1;
+        if (cantidadAnular > maxCantidad) cantidadAnular = maxCantidad;
+
+        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidadAnular);
         if (res.success) {
             if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
             else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');

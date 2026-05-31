@@ -1181,7 +1181,13 @@
                 Selecciona a qué variante (talla/color) deseas regresarle el stock (o selecciona 'No reponer' si hubo merma):
             </p>
             <input type="hidden" id="rvVentaId">
-            <input type="hidden" id="rvCantidad">
+            <input type="hidden" id="rvMaxCantidad">
+            <div class="form-group">
+                <label class="form-label">Cantidad a Anular / Devolver</label>
+                <div class="input-wrapper">
+                    <input type="number" class="form-input" id="rvCantidadAnular" min="1" style="padding-left:16px;">
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Variante a reponer</label>
                 <div class="input-wrapper">

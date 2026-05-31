@@ -270,15 +270,25 @@ try {
     } catch (err) { return []; }
   };
 
-  window.dexterDB.returnVenta = async (ventaId, varianteId, cantidad) => {
+  window.dexterDB.returnVenta = async (ventaId, varianteId, cantidadRestock) => {
     try {
-      const { error } = await getBusinessDB().from('ventas').delete().eq('id', ventaId);
-      if (error) throw error;
+      const { data: vRecord, error: vErr } = await getBusinessDB().from('ventas').select('*').eq('id', ventaId).single();
+      if (vErr) throw vErr;
 
-      if (varianteId && cantidad > 0) {
+      if (cantidadRestock >= vRecord.cantidad) {
+        const { error } = await getBusinessDB().from('ventas').delete().eq('id', ventaId);
+        if (error) throw error;
+      } else {
+        const nuevaCantidad = vRecord.cantidad - cantidadRestock;
+        const nuevoTotal = nuevaCantidad * vRecord.precio_unitario;
+        const { error } = await getBusinessDB().from('ventas').update({ cantidad: nuevaCantidad, total: nuevoTotal }).eq('id', ventaId);
+        if (error) throw error;
+      }
+
+      if (varianteId && cantidadRestock > 0) {
         const { data: vData } = await getBusinessDB().from('variantes').select('stock').eq('id', varianteId).single();
         if (vData) {
-          await getBusinessDB().from('variantes').update({ stock: vData.stock + cantidad }).eq('id', varianteId);
+          await getBusinessDB().from('variantes').update({ stock: vData.stock + cantidadRestock }).eq('id', varianteId);
         }
       }
       return { success: true };
