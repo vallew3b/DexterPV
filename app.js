@@ -278,17 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 
                 if (p) {
-                    const deseaEditar = await showCustomConfirm(
-                        '<i class="fa-solid fa-boxes-stacked"></i> Producto Existente', 
-                        `El producto <strong>"${p.nombre}"</strong> ya está registrado.<br><br>¿Deseas abrirlo para actualizar su stock o precio?`
-                    );
-                    
-                    if (deseaEditar) {
-                        editarProducto(p.id);
-                    } else {
-                        const inputCB = document.getElementById('codigo_barras');
-                        if (inputCB) inputCB.value = scannedCode;
-                    }
+                    openQuickUpdateModal(p);
                 } else {
                     const inputCB = document.getElementById('codigo_barras');
                     if (inputCB) {
@@ -2040,4 +2030,57 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     };
+
+    // Funciones para el Modal de Actualización Rápida (Escaner)
+    window.openQuickUpdateModal = (product) => {
+        document.getElementById('quProductId').value = product.id;
+        document.getElementById('quProductName').textContent = product.nombre;
+        document.getElementById('quCurrentStock').textContent = product.stock;
+        document.getElementById('quStockAdjust').value = '';
+        document.getElementById('quPrice').value = product.precioVenta || product.precio_venta || 0;
+        document.getElementById('quickUpdateProductModal').classList.add('active');
+        setTimeout(() => document.getElementById('quStockAdjust').focus(), 100);
+    };
+
+    window.closeQuickUpdateModal = () => {
+        document.getElementById('quickUpdateProductModal').classList.remove('active');
+    };
+
+    document.getElementById('btnQuickUpdateAceptar')?.addEventListener('click', async () => {
+        const pId = document.getElementById('quProductId').value;
+        let p = null;
+        if (typeof inventarioProductosCache !== 'undefined') {
+            p = inventarioProductosCache.find(x => x.id == pId);
+        }
+        if (!p) p = await window.electronAPI.getProducto(pId);
+        if (!p) return;
+        
+        const adjust = parseInt(document.getElementById('quStockAdjust').value) || 0;
+        const newPrice = parseFloat(document.getElementById('quPrice').value);
+        
+        if (!isNaN(newPrice)) p.precioVenta = newPrice;
+        
+        if (!p.variantes) p.variantes = [];
+        if (p.variantes.length === 0) {
+            p.variantes.push({ talla: 'Única', color: 'Único', stock: Math.max(0, p.stock + adjust) });
+        } else {
+            p.variantes[0].stock = Math.max(0, p.variantes[0].stock + adjust);
+        }
+
+        const res = await window.electronAPI.updateProducto(pId, p);
+        if (res.success) {
+            showToast('Actualizado', `Stock y precio de ${p.nombre} actualizados.`, 'success');
+            closeQuickUpdateModal();
+            const inputCB = document.getElementById('codigo_barras');
+            if (inputCB) {
+                inputCB.value = '';
+                inputCB.focus();
+            }
+            if (document.getElementById('inventario') && document.getElementById('inventario').classList.contains('active')) {
+                loadInventarioTable();
+            }
+        } else {
+            showToast('Error', 'No se pudo actualizar: ' + res.error, 'error');
+        }
+    });
 });

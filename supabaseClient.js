@@ -21,7 +21,7 @@ try {
 
   try {
     const loggedUser = JSON.parse(sessionStorage.getItem('user'));
-    if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key) {
+    if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key && loggedUser.comercio.nombre !== 'JESUS' && loggedUser.comercio.nombre !== 'JEUSS') {
         const cleanUrl = cleanSupabaseUrl(loggedUser.comercio.supabase_url);
         tenantSupabase = window.supabase.createClient(cleanUrl, loggedUser.comercio.supabase_key);
         
@@ -92,7 +92,7 @@ try {
         }
       }
 
-      if (comercioInfo && comercioInfo.supabase_url && comercioInfo.supabase_key) {
+      if (comercioInfo && comercioInfo.supabase_url && comercioInfo.supabase_key && comercioInfo.nombre !== 'JESUS' && comercioInfo.nombre !== 'JEUSS') {
           const cleanUrl = cleanSupabaseUrl(comercioInfo.supabase_url);
           tenantSupabase = window.supabase.createClient(cleanUrl, comercioInfo.supabase_key);
           

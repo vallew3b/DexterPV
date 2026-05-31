@@ -1127,6 +1127,37 @@
         </div>
     </div>
 
+    <!-- MODAL: ACTUALIZACIÓN RÁPIDA DE STOCK/PRECIO (ESCANER) -->
+    <div id="quickUpdateProductModal" class="modal" style="z-index:9999;">
+        <div class="modal-content glass-panel" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-boxes-stacked"></i> Producto Existente</h3>
+                <button class="modal-close" onclick="closeQuickUpdateModal()">&times;</button>
+            </div>
+            <div id="quProductName" style="font-weight:700; color:var(--text-primary); margin-bottom:10px; font-size:16px;"></div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                Ingresa la cantidad a <strong>sumar o restar</strong> al stock actual, y actualiza el precio si es necesario.
+            </p>
+            <input type="hidden" id="quProductId">
+            <div class="form-group">
+                <label class="form-label">Ajuste de Stock (Actual: <span id="quCurrentStock"></span>)</label>
+                <div class="input-wrapper">
+                    <input class="form-input" type="number" id="quStockAdjust" placeholder="Ej: 5 (suma), -2 (resta)" style="padding-left:16px;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Precio de Venta ($)</label>
+                <div class="input-wrapper">
+                    <input class="form-input" type="number" id="quPrice" step="0.01" min="0" style="padding-left:16px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn btn-primary" id="btnQuickUpdateAceptar" style="flex:1;">Guardar Cambios</button>
+                <button class="btn btn-secondary" onclick="closeQuickUpdateModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DB Layer and Application Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
