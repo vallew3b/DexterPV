@@ -10,7 +10,19 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 window.dexterDB = {};
 
 try {
-  let supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  let centralSupabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  let tenantSupabase = null;
+
+  try {
+    const loggedUser = JSON.parse(sessionStorage.getItem('user'));
+    if (loggedUser && loggedUser.comercio && loggedUser.comercio.supabase_url && loggedUser.comercio.supabase_key) {
+        tenantSupabase = window.supabase.createClient(loggedUser.comercio.supabase_url, loggedUser.comercio.supabase_key);
+    }
+  } catch(e) { console.error(e); }
+
+  function getBusinessDB() {
+      return tenantSupabase || centralSupabase;
+  }
 
   function getActiveComercioId(explicitComercioId) {
     if (explicitComercioId) return explicitComercioId;
