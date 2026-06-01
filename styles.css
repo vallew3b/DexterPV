@@ -1052,7 +1052,7 @@ body {
 
 .variants-table-header {
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr auto;
+    grid-template-columns: 2fr 2fr 1fr 2fr auto;
     gap: 8px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border-dark);
@@ -1073,7 +1073,7 @@ body {
 
 .variant-row {
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr auto;
+    grid-template-columns: 2fr 2fr 1fr 2fr auto;
     gap: 8px;
     align-items: center;
 }

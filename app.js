@@ -261,20 +261,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!activeSection) return;
 
             if (activeSection.id === 'ventas') {
-                const p = currentPOSProducts.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
-                if (p) {
-                    const variantesDisponibles = (p.variantes || []).filter(v => v.stock > 0);
-                    if (variantesDisponibles.length === 1) {
-                        // Si solo hay una variante con stock, agregar directo al carrito
-                        addToCart(p.id, variantesDisponibles[0].id);
+                let varianteMatcheada = null;
+                let productoMatcheado = null;
+                
+                // 1. Buscar en variantes hijas primero
+                for (const prod of currentPOSProducts) {
+                    if (prod.variantes && prod.variantes.length > 0) {
+                        const v = prod.variantes.find(v => v.codigo_barras === scannedCode);
+                        if (v) {
+                            productoMatcheado = prod;
+                            varianteMatcheada = v;
+                            break;
+                        }
+                    }
+                }
+
+                if (productoMatcheado && varianteMatcheada) {
+                    // Match directo con una variante!
+                    if (varianteMatcheada.stock > 0) {
+                        addToCart(productoMatcheado.id, varianteMatcheada.id);
                     } else {
-                        // Si hay varias (o cero), abrir el selector
-                        openVariantSelector(p.id);
+                        showToast('Sin Stock', 'Esta talla/variante no tiene stock.', 'warning');
                     }
                     const searchBar = document.getElementById('buscarProducto');
                     if (searchBar) searchBar.value = '';
                 } else {
-                    showToast('No Encontrado', 'El producto escaneado no está en el catálogo actual.', 'warning');
+                    // 2. Buscar en producto principal
+                    const p = currentPOSProducts.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
+                    if (p) {
+                        const variantesDisponibles = (p.variantes || []).filter(v => v.stock > 0);
+                        if (variantesDisponibles.length === 1) {
+                            addToCart(p.id, variantesDisponibles[0].id);
+                        } else {
+                            openVariantSelector(p.id);
+                        }
+                        const searchBar = document.getElementById('buscarProducto');
+                        if (searchBar) searchBar.value = '';
+                    } else {
+                        showToast('No Encontrado', 'El producto escaneado no está en el catálogo actual.', 'warning');
+                    }
                 }
             } else if (activeSection.id === 'agregar') {
                 // Buscar si ya existe el producto (primero en cache local)
@@ -1140,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <input type="text" class="variant-input" value="${v.talla}" placeholder="Ej: UNITALLA / L" onchange="updateVar(${index}, 'talla', this.value)" style="color:var(--text-primary);" required>
                 <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO / N/A" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);" required>
                 <input type="number" class="variant-input" value="${v.stock}" placeholder="0" min="0" onchange="updateVar(${index}, 'stock', this.value)" style="color:var(--text-primary);" required>
+                <input type="text" class="variant-input" value="${v.codigo_barras || ''}" placeholder="Cód. Escáner (Opc)" onchange="updateVar(${index}, 'codigo_barras', this.value)" style="color:var(--text-primary);">
                 <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash"></i></button>
             </div>
         `).join('');
@@ -1155,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     document.getElementById('btnAgregarVariante')?.addEventListener('click', () => {
-        variantesEditor.push({ talla: '', color: '', stock: 0 });
+        variantesEditor.push({ talla: '', color: '', stock: 0, codigo_barras: '' });
         renderVariantesEditor();
     });
 
@@ -1395,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('precioInventario').value = prod.precioInventario || 0;
         document.getElementById('precioVenta').value = prod.precioVenta || 0;
 
-        variantesEditor = (prod.variantes || []).map(v => ({ talla: v.talla, color: v.color, stock: v.stock }));
+        variantesEditor = (prod.variantes || []).map(v => ({ talla: v.talla, color: v.color, stock: v.stock, codigo_barras: v.codigo_barras || '' }));
         renderVariantesEditor();
 
         document.getElementById('formProductoTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Producto';
