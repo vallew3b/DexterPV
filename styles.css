@@ -1132,23 +1132,33 @@ body {
    RESPONSIVO / SOPORTE MÓVIL
    ================================================== */
 @media (max-width: 1024px) {
+    .main-content {
+        padding: 16px;
+    }
+
     .pos-layout {
-        grid-template-columns: 1fr;
-        padding-bottom: 300px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 102px);
+        gap: 16px;
+        padding-bottom: 0;
     }
     
+    .pos-catalog-panel {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
     .pos-cart-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
+        position: static;
         height: auto;
-        max-height: 45vh;
-        z-index: 999;
-        border-radius: 20px 20px 0 0;
-        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
-        background: var(--dark-obsidian);
+        max-height: 40vh;
+        flex-shrink: 0;
+        width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        background: #ffffff;
     }
 }
 
