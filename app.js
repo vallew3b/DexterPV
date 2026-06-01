@@ -185,7 +185,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Cargar datos según sección
         if (sectionId === 'inicio') loadDashboardData();
-        else if (sectionId === 'ventas') loadPOSCatalog();
+        else if (sectionId === 'ventas') {
+            const isMobile = window.innerWidth <= 1024;
+            loadPOSCatalog(isMobile ? 'ESCANER' : 'TODAS');
+        }
         else if (sectionId === 'historial') {
             const hoyStr = new Date().toISOString().split('T')[0];
             document.getElementById('fechaHistorial').value = hoyStr;
@@ -653,6 +656,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tabsContainer = document.getElementById('categoriasTabsVenta');
         if (tabsContainer) {
             let tabsHTML = `<button class="tab-btn ${category === 'TODAS' ? 'active' : ''}" data-categoria-venta="TODAS">TODAS</button>`;
+            if (window.innerWidth <= 1024) {
+                tabsHTML += `<button class="tab-btn ${category === 'ESCANER' ? 'active' : ''}" data-categoria-venta="ESCANER" style="color:var(--primary-emerald);"><i class="fa-solid fa-barcode"></i> ESCÁNER</button>`;
+            }
             tabsHTML += uniqueCategories.map(c => `
                 <button class="tab-btn ${category === c ? 'active' : ''}" data-categoria-venta="${c}">${c.toUpperCase()}</button>
             `).join('');
@@ -671,12 +677,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         let productosFiltrados = todosLosProductos;
 
         if (category !== 'TODAS') {
-            productosFiltrados = productosFiltrados.filter(p => p.categoria === category);
+            if (category === 'ESCANER') {
+                productosFiltrados = [];
+            } else {
+                productosFiltrados = productosFiltrados.filter(p => p.categoria === category);
+            }
         }
 
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
-            productosFiltrados = productosFiltrados.filter(p =>
+            let baseList = category === 'ESCANER' ? todosLosProductos : productosFiltrados;
+            productosFiltrados = baseList.filter(p =>
                 p.nombre.toLowerCase().includes(term) ||
                 p.codigo.toLowerCase().includes(term) ||
                 (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term)) ||
@@ -687,7 +698,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPOSProducts = productosFiltrados;
 
         if (productosFiltrados.length === 0) {
-            grid.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center; width:100%;">No se encontraron productos disponibles.</div>';
+            if (category === 'ESCANER' && !searchTerm) {
+                grid.innerHTML = '<div style="color:var(--text-muted); padding:40px 20px; text-align:center; width:100%;"><i class="fa-solid fa-barcode" style="font-size:32px; margin-bottom:10px; opacity:0.5;"></i><br>Modo Escáner.<br>Busca o escanea un producto para agregarlo.</div>';
+            } else {
+                grid.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center; width:100%;">No se encontraron productos disponibles.</div>';
+            }
             return;
         }
 
