@@ -1134,11 +1134,21 @@ body {
 @media (max-width: 1024px) {
     .pos-layout {
         grid-template-columns: 1fr;
+        padding-bottom: 300px;
     }
     
     .pos-cart-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
         height: auto;
-        position: static;
+        max-height: 45vh;
+        z-index: 999;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        background: var(--dark-obsidian);
     }
 }
 

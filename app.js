@@ -127,6 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 for (let i = 1; i <= 4; i++) removeImagePreview(i);
             }
             navigateToSection(section);
+            // Cerrar sidebar en móviles automáticamente
+            document.querySelector('.sidebar').classList.remove('active');
         });
     });
 
