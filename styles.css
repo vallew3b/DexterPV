@@ -1138,26 +1138,24 @@ body {
 
     .pos-layout {
         display: flex;
-        flex-direction: column;
-        height: calc(100vh - 102px);
-        gap: 16px;
+        flex-direction: column-reverse; /* Carrito primero, luego el catálogo */
+        height: auto;
+        gap: 24px;
         padding-bottom: 0;
     }
     
     .pos-catalog-panel {
-        flex: 1;
-        overflow-y: auto;
-        min-height: 0;
+        height: auto;
+        overflow: visible;
     }
 
     .pos-cart-panel {
         position: static;
         height: auto;
-        max-height: 40vh;
-        flex-shrink: 0;
+        max-height: none;
         width: 100%;
         border-radius: 16px;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         background: #ffffff;
     }
 }
@@ -1181,6 +1179,31 @@ body {
     
     .mobile-close-sidebar {
         display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    .glass-panel {
+        padding: 16px !important;
+    }
+    .premium-table th, .premium-table td {
+        padding: 12px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .top-bar {
+        padding: 0 16px;
+    }
+    .top-bar-title {
+        font-size: 18px;
     }
 }
 
