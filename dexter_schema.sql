@@ -128,3 +128,6 @@ CREATE TABLE public.pedidos_web (
     fecha TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     comercio_id INTEGER REFERENCES public.comercios(id) ON DELETE CASCADE
 );
+
+-- Quitar el candado de seguridad (RLS) para que la tienda (usuario anónimo) pueda guardar pedidos libremente
+ALTER TABLE public.pedidos_web DISABLE ROW LEVEL SECURITY;
