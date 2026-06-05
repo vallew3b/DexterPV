@@ -610,6 +610,28 @@ try {
     }
   };
 
+  // ==========================================
+  // PEDIDOS WEB
+  // ==========================================
+  window.dexterDB.getPedidosWeb = async (comercioId) => {
+    try {
+      const targetId = getActiveComercioId(comercioId);
+      let query = getBusinessDB().from('pedidos_web').select('*');
+      if (targetId) query = query.eq('comercio_id', targetId);
+      const { data, error } = await query.order('fecha', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) { return []; }
+  };
+
+  window.dexterDB.actualizarEstadoPedidoWeb = async (pedidoId, estado) => {
+    try {
+      const { error } = await getBusinessDB().from('pedidos_web').update({ estado }).eq('id', pedidoId);
+      if (error) throw error;
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  };
+
   // Alias para app.js
   window.electronAPI = window.dexterDB;
 

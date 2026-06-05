@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         else if (sectionId === 'inventario') loadInventarioTable();
         else if (sectionId === 'gastos') loadGastosTable();
+        else if (sectionId === 'pedidos-web') loadPedidosWebTable();
         else if (sectionId === 'superadmin-panel') loadSuperadminData();
         else if (sectionId === 'agregar') loadFormCategorias();
         else if (sectionId === 'perfil') loadPerfilData();
@@ -2217,4 +2218,147 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast('Error', 'No se pudo actualizar: ' + res.error, 'error');
         }
     });
+
+    // =========================================================
+    // PEDIDOS WEB
+    // ==========================================
+    window.loadPedidosWebTable = async () => {
+        const tbody = document.getElementById('pedidosWebTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando pedidos...</td></tr>';
+        
+        const pedidos = await window.electronAPI.getPedidosWeb();
+        
+        if (!pedidos || pedidos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No hay pedidos registrados en la tienda en línea.</td></tr>';
+            return;
+        }
+
+        window.currentPedidosWeb = pedidos;
+
+        tbody.innerHTML = pedidos.map(p => {
+            let badgeClass = 'badge-warning'; // pendiente
+            if (p.estado === 'confirmado') badgeClass = 'badge-success';
+            if (p.estado === 'anulado') badgeClass = 'badge-danger';
+            
+            const fecha = new Date(p.fecha).toLocaleString();
+
+            return `
+                <tr>
+                    <td>${fecha}</td>
+                    <td style="font-weight:600;">${p.cliente_nombre}</td>
+                    <td style="color:var(--primary-emerald); font-weight:700;">$${p.total.toFixed(2)}</td>
+                    <td><span class="badge ${badgeClass}">${p.estado.toUpperCase()}</span></td>
+                    <td>
+                        <button class="btn btn-secondary btn-small" onclick="verDetallesPedidoWeb(${p.id})">
+                            <i class="fa-solid fa-eye"></i> Detalles
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    document.getElementById('btnRefreshPedidosWeb')?.addEventListener('click', loadPedidosWebTable);
+
+    window.verDetallesPedidoWeb = (id) => {
+        const pedido = window.currentPedidosWeb.find(p => p.id === id);
+        if (!pedido) return;
+
+        document.getElementById('pedidoWebCliente').textContent = pedido.cliente_nombre;
+        document.getElementById('pedidoWebFecha').textContent = new Date(pedido.fecha).toLocaleString();
+        document.getElementById('pedidoWebTotal').textContent = `$${pedido.total.toFixed(2)}`;
+        
+        const badge = document.getElementById('pedidoWebEstado');
+        badge.textContent = pedido.estado.toUpperCase();
+        badge.className = 'badge';
+        if (pedido.estado === 'pendiente') badge.classList.add('badge-warning');
+        if (pedido.estado === 'confirmado') badge.classList.add('badge-success');
+        if (pedido.estado === 'anulado') badge.classList.add('badge-danger');
+
+        const list = document.getElementById('pedidoWebArticulosList');
+        if (pedido.detalles_pedido && pedido.detalles_pedido.length > 0) {
+            list.innerHTML = pedido.detalles_pedido.map(item => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:6px;">
+                    <div>
+                        <div style="font-weight:600;">${item.cantidad}x ${item.nombre}</div>
+                        ${item.variante ? `<div style="font-size:12px; color:var(--text-muted);">${item.variante}</div>` : ''}
+                    </div>
+                    <div style="color:var(--primary-emerald);">$${(item.cantidad * item.precio).toFixed(2)}</div>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = '<div style="color:var(--text-muted);">Sin detalles.</div>';
+        }
+
+        const footer = document.querySelector('#detallesPedidoWebModal .modal-footer');
+        if (pedido.estado === 'pendiente') {
+            footer.innerHTML = `
+                <button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>
+                <button class="btn btn-primary" onclick="confirmarPedidoWeb(${pedido.id})" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
+                    <i class="fa-solid fa-check"></i> Confirmar y Descontar Stock
+                </button>
+                <button class="btn btn-secondary" onclick="anularPedidoWeb(${pedido.id})" style="color: var(--danger); border-color: var(--danger-glass);">
+                    <i class="fa-solid fa-ban"></i> Anular Pedido
+                </button>
+            `;
+        } else {
+            footer.innerHTML = `<button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>`;
+        }
+
+        document.getElementById('detallesPedidoWebModal').classList.add('active');
+    };
+
+    window.closePedidoWebModal = () => {
+        document.getElementById('detallesPedidoWebModal').classList.remove('active');
+    };
+
+    window.confirmarPedidoWeb = async (id) => {
+        if (!confirm('¿Deseas confirmar el pedido? Esto registrará la venta y descontará el stock.')) return;
+        
+        const pedido = window.currentPedidosWeb.find(p => p.id === id);
+        if (!pedido) return;
+
+        const ventasArray = pedido.detalles_pedido.map(item => ({
+            producto_id: item.producto_id,
+            variante_id: item.variante_id,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio
+        }));
+
+        try {
+            const resVenta = await window.electronAPI.addVentaMultiple(ventasArray);
+            if (resVenta.success) {
+                const resPedido = await window.electronAPI.actualizarEstadoPedidoWeb(id, 'confirmado');
+                if (resPedido.success) {
+                    showToast('Confirmado', 'Pedido procesado y stock descontado.', 'success');
+                    closePedidoWebModal();
+                    loadPedidosWebTable();
+                } else {
+                    showToast('Aviso', 'Venta registrada pero falló actualizar estado del pedido.', 'warning');
+                }
+            } else {
+                showToast('Error', 'No se pudo procesar la venta: ' + resVenta.error, 'error');
+            }
+        } catch (err) {
+            showToast('Error', 'Error al confirmar: ' + err.message, 'error');
+        }
+    };
+
+    window.anularPedidoWeb = async (id) => {
+        if (!confirm('¿Deseas anular este pedido? El stock NO se descontará.')) return;
+        try {
+            const res = await window.electronAPI.actualizarEstadoPedidoWeb(id, 'anulado');
+            if (res.success) {
+                showToast('Anulado', 'El pedido ha sido anulado.', 'info');
+                closePedidoWebModal();
+                loadPedidosWebTable();
+            } else {
+                showToast('Error', res.error, 'error');
+            }
+        } catch (err) {
+            showToast('Error', err.message, 'error');
+        }
+    };
+
 });

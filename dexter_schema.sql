@@ -117,3 +117,14 @@ USING (bucket_id = 'productos');
 INSERT INTO public.usuarios (usuario, password, nombre, rol, comercio_id) 
 VALUES ('admin', '1234', 'Superadmin Propietario', 'superadmin', NULL)
 ON CONFLICT (usuario) DO NOTHING;
+
+-- 7. TABLA PEDIDOS WEB
+CREATE TABLE public.pedidos_web (
+    id SERIAL PRIMARY KEY,
+    cliente_nombre VARCHAR(255) NOT NULL,
+    detalles_pedido JSONB NOT NULL,
+    total DECIMAL(12, 2) NOT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'pendiente', -- pendiente, confirmado, anulado
+    fecha TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    comercio_id INTEGER REFERENCES public.comercios(id) ON DELETE CASCADE
+);

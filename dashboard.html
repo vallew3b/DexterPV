@@ -78,6 +78,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" data-section="pedidos-web">
+                                <i class="fa-solid fa-globe"></i> <span>Pedidos Web</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" data-section="inventario">
                                 <i class="fa-solid fa-boxes-stacked"></i> <span>Inventario</span>
                             </a>
@@ -266,6 +271,43 @@
                                     <tr>
                                         <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">
                                             Selecciona una fecha para ver el historial
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================================================
+                     SECCIÓN: PEDIDOS WEB
+                     ================================================== -->
+                <section id="pedidos-web" class="content-section">
+                    <div class="glass-panel" style="padding: 24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+                            <h3 style="font-weight: 700; color: var(--text-primary);">
+                                <i class="fa-solid fa-globe"></i> Pedidos de la Tienda en Línea
+                            </h3>
+                            <button class="btn btn-secondary btn-small" id="btnRefreshPedidosWeb">
+                                <i class="fa-solid fa-rotate"></i> Actualizar
+                            </button>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha / Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Total Pedido</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pedidosWebTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                            Cargando pedidos...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -998,6 +1040,39 @@
 
             </div>
         </main>
+    </div>
+
+    <!-- MODAL: DETALLES DE PEDIDO WEB -->
+    <div id="detallesPedidoWebModal" class="modal">
+        <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-list-check"></i> Detalles del Pedido Web</h3>
+                <button class="modal-close" onclick="closePedidoWebModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <strong>Cliente:</strong> <span id="pedidoWebCliente"></span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Fecha:</strong> <span id="pedidoWebFecha"></span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Estado:</strong> <span id="pedidoWebEstado" class="badge"></span>
+                </div>
+                
+                <h4 style="margin-bottom: 10px; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;">Artículos:</h4>
+                <div id="pedidoWebArticulosList" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+                    <!-- Artículos dinámicos -->
+                </div>
+                
+                <div style="text-align: right; font-size: 18px; font-weight: 700;">
+                    Total: <span id="pedidoWebTotal" style="color: var(--primary-emerald);">$0.00</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL: SELECTOR DE VARIANTES PARA VENTAS (POS) -->
