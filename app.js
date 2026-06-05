@@ -2278,15 +2278,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const list = document.getElementById('pedidoWebArticulosList');
         if (pedido.detalles_pedido && pedido.detalles_pedido.length > 0) {
-            list.innerHTML = pedido.detalles_pedido.map(item => `
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:6px;">
-                    <div>
-                        <div style="font-weight:600;">${item.cantidad}x ${item.nombre}</div>
-                        ${item.variante ? `<div style="font-size:12px; color:var(--text-muted);">${item.variante}</div>` : ''}
+            list.innerHTML = pedido.detalles_pedido.map(item => {
+                const imgHtml = item.imagen_url 
+                    ? `<img src="${item.imagen_url}" alt="${item.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                    : `<div style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-image" style="color: var(--text-muted);"></i></div>`;
+                
+                return `
+                <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:6px;">
+                    <div style="display:flex; align-items: center;">
+                        ${imgHtml}
+                        <div>
+                            <div style="font-weight:600;">${item.cantidad}x ${item.nombre}</div>
+                            ${item.variante ? `<div style="font-size:12px; color:var(--text-muted);">${item.variante}</div>` : ''}
+                        </div>
                     </div>
-                    <div style="color:var(--primary-emerald);">$${(item.cantidad * item.precio).toFixed(2)}</div>
+                    <div style="color:var(--primary-emerald); font-weight: 600;">$${(item.cantidad * item.precio).toFixed(2)}</div>
                 </div>
-            `).join('');
+            `}).join('');
         } else {
             list.innerHTML = '<div style="color:var(--text-muted);">Sin detalles.</div>';
         }
