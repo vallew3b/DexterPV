@@ -1165,7 +1165,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <input type="text" class="variant-input" value="${v.talla}" placeholder="Ej: UNITALLA / L" onchange="updateVar(${index}, 'talla', this.value)" style="color:var(--text-primary);" required>
                 <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO / N/A" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);" required>
                 <input type="number" class="variant-input" value="${v.stock}" placeholder="0" min="0" onchange="updateVar(${index}, 'stock', this.value)" style="color:var(--text-primary);" required>
-                <input type="text" class="variant-input" value="${v.codigo_barras || ''}" placeholder="Cód. Escáner (Opc)" onchange="updateVar(${index}, 'codigo_barras', this.value)" style="color:var(--text-primary);">
                 <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash"></i></button>
             </div>
         `).join('');
@@ -1181,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     document.getElementById('btnAgregarVariante')?.addEventListener('click', () => {
-        variantesEditor.push({ talla: '', color: '', stock: 0, codigo_barras: '' });
+        variantesEditor.push({ talla: '', color: '', stock: 0 });
         renderVariantesEditor();
     });
 
@@ -1421,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('precioInventario').value = prod.precioInventario || 0;
         document.getElementById('precioVenta').value = prod.precioVenta || 0;
 
-        variantesEditor = (prod.variantes || []).map(v => ({ talla: v.talla, color: v.color, stock: v.stock, codigo_barras: v.codigo_barras || '' }));
+        variantesEditor = (prod.variantes || []).map(v => ({ talla: v.talla, color: v.color, stock: v.stock }));
         renderVariantesEditor();
 
         document.getElementById('formProductoTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Producto';
