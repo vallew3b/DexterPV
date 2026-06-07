@@ -721,6 +721,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             );
         }
 
+        // Ordenar productos: con stock primero, sin stock (fantasmas) al final
+        productosFiltrados.sort((a, b) => {
+            const stockA = a.stock || 0;
+            const stockB = b.stock || 0;
+            if (stockA > 0 && stockB <= 0) return -1;
+            if (stockA <= 0 && stockB > 0) return 1;
+            return 0;
+        });
+
         currentPOSProducts = productosFiltrados;
 
         if (productosFiltrados.length === 0) {
