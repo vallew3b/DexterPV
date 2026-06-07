@@ -1760,6 +1760,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const fVenc = new Date(c.fecha_vencimiento);
                 const vencido = fVenc < hoy;
                 const bloqueado = c.estado_suscripcion !== 'activo' || vencido;
+                const diffTime = fVenc.getTime() - hoy.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                 if (bloqueado) bloqueados++;
                 else activos++;
@@ -1776,7 +1778,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td style="text-transform:uppercase; font-size:11px;">${c.plan.replace('_', ' ')}</td>
                         <td>
                             ${fVenc.toLocaleDateString()}
-                            ${vencido ? '<br><span style="color:var(--danger); font-size:10px;">Expirado</span>' : ''}
+                            ${vencido ? '<br><span style="color:var(--danger); font-size:10px;">Expirado</span>' : `<br><span style="color:var(--text-muted); font-size:11px; font-weight:600;">(Quedan ${diffDays} días)</span>`}
                         </td>
                         <td>${c.usuariosCount} cuenta(s)</td>
                         <td>
