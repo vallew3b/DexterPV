@@ -1178,6 +1178,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `).join('');
     }
+    
+    // Llamar una vez al iniciar para que aparezca la matriz vacía
+    renderVariantesEditor();
 
     window.updateVar = (index, field, val) => {
         variantesEditor[index][field] = field === 'stock' ? parseInt(val) || 0 : val;
