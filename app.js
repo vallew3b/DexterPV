@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (user.comercio) {
             const fechaVenc = new Date(user.comercio.fecha_vencimiento);
             const hoy = new Date();
-            
+
             // Calcular días restantes (ignorando horas)
             const diffTime = fechaVenc.getTime() - hoy.getTime();
             const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!isSubscriptionActive) {
         document.querySelectorAll('.sidebar-menu-wrapper .menu-group').forEach(el => el.style.display = 'none');
         document.querySelector('.top-bar-right').style.display = 'none';
-        
+
         document.querySelectorAll('.content-section').forEach(sec => {
             sec.classList.remove('active');
             sec.style.display = 'none';
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.clear();
             window.location.href = 'index.html';
         });
-        
+
         return;
     }
 
@@ -209,35 +209,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================
     let barcodeBuffer = '';
     let barcodeTimer = null;
-    
+
     function showCustomConfirm(title, message) {
         return new Promise((resolve) => {
             const modal = document.getElementById('customConfirmModal');
             if (!modal) return resolve(confirm(message)); // Fallback si no existe el modal
-            
+
             document.getElementById('customConfirmTitle').innerHTML = title;
             document.getElementById('customConfirmMessage').innerHTML = message;
-            
+
             const btnAceptar = document.getElementById('btnCustomConfirmAceptar');
             const btnCancelar = document.getElementById('btnCustomConfirmCancelar');
-            
+
             const handleAceptar = () => {
                 modal.classList.remove('active');
                 btnAceptar.removeEventListener('click', handleAceptar);
                 btnCancelar.removeEventListener('click', handleCancelar);
                 resolve(true);
             };
-            
+
             const handleCancelar = () => {
                 modal.classList.remove('active');
                 btnAceptar.removeEventListener('click', handleAceptar);
                 btnCancelar.removeEventListener('click', handleCancelar);
                 resolve(false);
             };
-            
+
             btnAceptar.addEventListener('click', handleAceptar);
             btnCancelar.addEventListener('click', handleCancelar);
-            
+
             modal.classList.add('active');
         });
     }
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('keydown', async (e) => {
         // Ignorar si el foco está en un textarea para evitar borrar o saltar líneas sin querer
         if (e.target.tagName === 'TEXTAREA') return;
-        
+
         if (e.key.length === 1) {
             barcodeBuffer += e.key;
             if (barcodeTimer) clearTimeout(barcodeTimer);
@@ -257,14 +257,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault(); // Evitar submit de forms accidentales
             const scannedCode = barcodeBuffer;
             barcodeBuffer = '';
-            
+
             const activeSection = document.querySelector('.content-section.active');
             if (!activeSection) return;
 
             if (activeSection.id === 'ventas') {
                 let varianteMatcheada = null;
                 let productoMatcheado = null;
-                
+
                 // 1. Buscar en variantes hijas primero
                 for (const prod of currentPOSProducts) {
                     if (prod.variantes && prod.variantes.length > 0) {
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const todos = await window.electronAPI.getProductos();
                     p = todos.find(x => x.codigo_barras === scannedCode || x.codigo === scannedCode);
                 }
-                
+
                 if (p) {
                     openQuickUpdateModal(p);
                 } else {
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadFinanzasData() {
         if (isSuperadmin || !user.comercio) return;
-        
+
         try {
             document.getElementById('finanzasCapital').textContent = 'Calculando...';
             document.getElementById('finanzasIngresos').textContent = 'Calculando...';
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('finanzasIngresos').textContent = money(ingresosBrutos);
             document.getElementById('finanzasCogs').textContent = money(cogsTotal);
             document.getElementById('finanzasOpex').textContent = money(opexTotal);
-            
+
             const utilEl = document.getElementById('finanzasUtilidad');
             utilEl.textContent = money(utilidadNeta);
             if (utilidadNeta < 0) {
@@ -401,14 +401,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function loadPerfilData() {
         if (isSuperadmin || !user.comercio) return;
-        
+
         let planNombre = user.comercio.plan.replace('_', ' ').toUpperCase();
         document.getElementById('perfilPlan').textContent = planNombre;
-        
+
         let dias = user.diasRestantes || 0;
         const diasEl = document.getElementById('perfilDiasRestantes');
         diasEl.textContent = dias > 0 ? dias : 0;
-        
+
         if (dias <= 5) {
             diasEl.style.color = 'var(--danger)';
             document.getElementById('perfilRenovacionAlerta').style.display = 'block';
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             diasEl.style.color = 'var(--text-primary)';
             document.getElementById('perfilRenovacionAlerta').style.display = 'none';
         }
-        
+
         const fecha = new Date(user.comercio.fecha_vencimiento);
         document.getElementById('perfilFechaVenc').textContent = fecha.toLocaleDateString();
     }
@@ -426,13 +426,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.renderCategoriasSugeridas = (filtro = '') => {
         const suggContainer = document.getElementById('categoriasSugeridas');
         if (!suggContainer) return;
-        
+
         let filtradas = globalCategoriasForm;
         if (filtro) {
             filtradas = filtradas.filter(c => c.toLowerCase().includes(filtro.toLowerCase()));
         }
-        
-        suggContainer.innerHTML = filtradas.slice(0, 15).map(c => 
+
+        suggContainer.innerHTML = filtradas.slice(0, 15).map(c =>
             `<span class="badge" style="background:var(--bg-glass); cursor:pointer; padding:6px 10px; font-size:12px; border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary);" onclick="document.getElementById('categoria').value='${c}'; document.getElementById('categoria').dispatchEvent(new Event('input'))">${c}</span>`
         ).join('');
     };
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const todosLosProductos = await window.electronAPI.getProductos();
             globalCategoriasForm = [...new Set(todosLosProductos.map(p => p.categoria).filter(c => c))];
-            
+
             const datalist = document.getElementById('categoriasList');
             if (datalist) {
                 datalist.innerHTML = globalCategoriasForm.map(c => `<option value="${c}">`).join('');
@@ -563,10 +563,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const isDevolucion = v.cantidad < 0;
             const trStyle = isDevolucion ? 'background: rgba(239, 68, 68, 0.05);' : '';
-            const actionBtn = isDevolucion ? 
-                `<span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger-red);">Devolución</span>` : 
+            const actionBtn = isDevolucion ?
+                `<span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger-red);">Devolución</span>` :
                 `<button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${v.cantidad})" title="Anular venta y devolver dinero"><i class="fa-solid fa-rotate-left"></i> Anular</button>`;
-            
+
             return `
                 <tr style="${trStyle}">
                     <td>${date.toLocaleDateString()} <span style="color:var(--text-muted); font-size:11px;">${timeStr}</span></td>
@@ -589,10 +589,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!p) {
             p = await window.electronAPI.getProducto(productoId);
         }
-        
+
         if (!p) {
             const confirmar = await showCustomConfirm(
-                '<i class="fa-solid fa-triangle-exclamation"></i> Anular Venta', 
+                '<i class="fa-solid fa-triangle-exclamation"></i> Anular Venta',
                 `¿Anular la venta de <strong>"${productoNombre}"</strong>?<br><br>El producto ya no existe en tu inventario, por lo que solo se eliminará el registro financiero.`
             );
             if (confirmar) {
@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 select.innerHTML += `<option value="${v.id}">${v.talla} / ${v.color} (Stock actual: ${v.stock})</option>`;
             });
         }
-        
+
         document.getElementById('returnVariantModal').classList.add('active');
     };
 
@@ -646,7 +646,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (res.success) {
             if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
             else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');
-            
+
             closeReturnVariantModal();
             const fecha = document.getElementById('fechaHistorial').value;
             if (fecha) loadHistorialVentas(fecha, fecha);
@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Solo recargar de la base de datos si es llamado por actualizar o primera vez
         // (Para simplificar, recargaremos siempre y usaremos cache para filtrado rápido)
         inventarioProductosCache = await window.electronAPI.getProductos();
-        
+
         renderInventarioCategorias();
         renderInventarioFiltros();
     }
@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let html = `<button class="tab-btn ${currentInventarioCategoria === 'TODAS' ? 'active' : ''}" data-categoria-inv="TODAS">TODAS</button>`;
         html += `<button class="tab-btn ${currentInventarioCategoria === 'SIN STOCK' ? 'active' : ''}" data-categoria-inv="SIN STOCK" style="color:var(--danger); border-color:var(--danger-glass);">SIN STOCK</button>`;
         html += `<button class="tab-btn ${currentInventarioCategoria === 'STOCK < 3' ? 'active' : ''}" data-categoria-inv="STOCK < 3" style="color:var(--warning); border-color:rgba(245, 158, 11, 0.2);">STOCK < 3</button>`;
-        
+
         categoriasArr.forEach(c => {
             html += `<button class="tab-btn ${currentInventarioCategoria === c ? 'active' : ''}" data-categoria-inv="${c}">${c}</button>`;
         });
@@ -998,13 +998,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderInventarioFiltros() {
         const tbody = document.getElementById('inventarioTableBody');
-        
+
         let filtered = inventarioProductosCache;
 
         // Filtro Búsqueda
         if (currentInventarioSearch) {
-            filtered = filtered.filter(p => 
-                (p.nombre && p.nombre.toLowerCase().includes(currentInventarioSearch)) || 
+            filtered = filtered.filter(p =>
+                (p.nombre && p.nombre.toLowerCase().includes(currentInventarioSearch)) ||
                 (p.codigo && p.codigo.toLowerCase().includes(currentInventarioSearch)) ||
                 (p.codigo_barras && p.codigo_barras.toLowerCase().includes(currentInventarioSearch)) ||
                 (p.descripcion && p.descripcion.toLowerCase().includes(currentInventarioSearch))
@@ -1038,9 +1038,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const statValor = document.getElementById('statInventarioValor');
         const statSinStock = document.getElementById('statInventarioSinStock');
 
-        if(statArticulos) statArticulos.textContent = totalArticulos;
-        if(statValor) statValor.textContent = `$${valorTotal.toFixed(2)}`;
-        if(statSinStock) statSinStock.textContent = sinStockCount;
+        if (statArticulos) statArticulos.textContent = totalArticulos;
+        if (statValor) statValor.textContent = `$${valorTotal.toFixed(2)}`;
+        if (statSinStock) statSinStock.textContent = sinStockCount;
 
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No se encontraron productos.</td></tr>';
@@ -1061,11 +1061,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td style="font-weight:600;">
                         <div style="display:flex; align-items:center; gap:10px;">
                             ${p.imagen_url
-                        ? `<div style="position:relative; width:36px; height:36px; cursor:zoom-in;" onclick="verFoto('${fotosParam}')" title="Clic para expandir">
+                    ? `<div style="position:relative; width:36px; height:36px; cursor:zoom-in;" onclick="verFoto('${fotosParam}')" title="Clic para expandir">
                               <img src="${p.imagen_url}" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(0,0,0,0.1);">
-                              ${fotosArray.length > 1 ? `<span style="position:absolute; bottom:-4px; right:-4px; background:var(--primary-emerald); color:white; font-size:9px; font-weight:bold; padding:2px 4px; border-radius:4px;">+${fotosArray.length-1}</span>` : ''}
+                              ${fotosArray.length > 1 ? `<span style="position:absolute; bottom:-4px; right:-4px; background:var(--primary-emerald); color:white; font-size:9px; font-weight:bold; padding:2px 4px; border-radius:4px;">+${fotosArray.length - 1}</span>` : ''}
                            </div>`
-                        : `<div style="width:36px; height:36px; border-radius:6px; background:var(--bg-glass); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); border:1px solid rgba(0,0,0,0.1);">${p.nombre.substring(0, 2).toUpperCase()}</div>`}
+                    : `<div style="width:36px; height:36px; border-radius:6px; background:var(--bg-glass); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); border:1px solid rgba(0,0,0,0.1);">${p.nombre.substring(0, 2).toUpperCase()}</div>`}
                             <span>${p.nombre}</span>
                         </div>
                     </td>
@@ -1129,8 +1129,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const hasMultiple = urls.length > 1;
             prevBtn.style.display = hasMultiple ? 'block' : 'none';
             nextBtn.style.display = hasMultiple ? 'block' : 'none';
-            
-            dotsEl.innerHTML = urls.map((u, i) => 
+
+            dotsEl.innerHTML = urls.map((u, i) =>
                 `<div style="width:12px; height:12px; border-radius:50%; background:${i === currentIndex ? 'white' : 'rgba(255,255,255,0.3)'}; cursor:pointer; transition:background 0.3s;" onclick="event.stopPropagation(); window.visorGoTo(${i})"></div>`
             ).join('');
         };
@@ -1172,13 +1172,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         list.innerHTML = variantesEditor.map((v, index) => `
             <div class="variant-row">
                 <input type="text" class="variant-input" value="${v.talla}" placeholder="Ej: UNITALLA / L" onchange="updateVar(${index}, 'talla', this.value)" style="color:var(--text-primary);" required>
-                <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO (Opcional)" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);">
+                <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: (Opcional)" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);">
                 <input type="number" class="variant-input" value="${v.stock}" placeholder="0" min="0" onchange="updateVar(${index}, 'stock', this.value)" style="color:var(--text-primary);" required>
                 <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2); visibility: ${variantesEditor.length > 1 ? 'visible' : 'hidden'};"><i class="fa-solid fa-trash"></i></button>
             </div>
         `).join('');
     }
-    
+
     // Llamar una vez al iniciar para que aparezca la matriz vacía
     renderVariantesEditor();
 
@@ -1243,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const file = input.files[0];
         const preview = document.getElementById(`imagenPreview${index}`);
         const removeBtn = document.getElementById(`btnRemoveImg${index}`);
-        
+
         if (file) {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -1283,11 +1283,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('categoria')?.addEventListener('input', async (e) => {
         const val = e.target.value.trim();
-        
+
         if (window.renderCategoriasSugeridas) {
             window.renderCategoriasSugeridas(val);
         }
-        
+
         const editId = document.getElementById('editProductId').value;
         if (!editId && val) { // Solo auto-generar si estamos creando un nuevo producto
             const nuevoCodigo = await generarCodigoInterno(val);
@@ -1318,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Manejar Subida de Imágenes (Hasta 4)
             let finalImageUrls = [null, null, null, null];
-            
+
             for (let i = 1; i <= 4; i++) {
                 const fileInput = document.getElementById(`imagenFile${i}`);
                 if (fileInput) {
@@ -1326,11 +1326,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // Comprimir antes de subir
                         showToast('Info', `Comprimiendo foto ${i}...`, 'info');
                         const compressedFile = await compressImage(fileInput.files[0]);
-                        
+
                         showToast('Info', `Subiendo foto ${i}...`, 'info');
                         const uploadRes = await window.dexterDB.uploadImage(compressedFile, user.comercio_id);
                         if (uploadRes.success) {
-                            finalImageUrls[i-1] = uploadRes.url;
+                            finalImageUrls[i - 1] = uploadRes.url;
                         } else {
                             showToast('Error', `Fallo al subir foto ${i}: ` + uploadRes.error, 'error');
                             btn.disabled = false;
@@ -1338,7 +1338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             return;
                         }
                     } else if (fileInput.dataset.existingUrl) {
-                        finalImageUrls[i-1] = fileInput.dataset.existingUrl;
+                        finalImageUrls[i - 1] = fileInput.dataset.existingUrl;
                     }
                 }
             }
@@ -1380,7 +1380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     showToast('Agregado', 'Producto registrado con éxito.');
                     document.getElementById('productoForm').reset();
                     if (document.getElementById('imagenFile1')) {
-                        for(let i=1; i<=4; i++) removeImagePreview(i);
+                        for (let i = 1; i <= 4; i++) removeImagePreview(i);
                     }
                     variantesEditor = [];
                     renderVariantesEditor();
@@ -1411,22 +1411,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Manejar edición de imagen (Limpiar file inputs y mostrar previews si hay URLs previas)
         const urls = [prod.imagen_url, prod.imagen_url_2, prod.imagen_url_3, prod.imagen_url_4];
-        for(let i=1; i<=4; i++) {
+        for (let i = 1; i <= 4; i++) {
             const input = document.getElementById(`imagenFile${i}`);
             const preview = document.getElementById(`imagenPreview${i}`);
             const removeBtn = document.getElementById(`btnRemoveImg${i}`);
-            
+
             if (input) input.value = '';
-            
-            if (urls[i-1] && preview && removeBtn) {
-                preview.src = urls[i-1];
+
+            if (urls[i - 1] && preview && removeBtn) {
+                preview.src = urls[i - 1];
                 preview.style.display = 'block';
                 removeBtn.style.display = 'flex';
-                if(input) input.dataset.existingUrl = urls[i-1];
+                if (input) input.dataset.existingUrl = urls[i - 1];
             } else if (preview && removeBtn) {
                 preview.style.display = 'none';
                 removeBtn.style.display = 'none';
-                if(input) delete input.dataset.existingUrl;
+                if (input) delete input.dataset.existingUrl;
             }
         }
 
@@ -1469,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let fechaInicio = null;
         let fechaFin = null;
         const filtroMes = document.getElementById('filtroGastosMes')?.value;
-        
+
         if (filtroMes) {
             const [year, month] = filtroMes.split('-');
             fechaInicio = `${year}-${month}-01`;
@@ -1517,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (gastosChartInstance) {
                 gastosChartInstance.destroy();
             }
-            
+
             gastosChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -1525,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     datasets: [{
                         data: Object.values(catMap),
                         backgroundColor: [
-                            '#ef4444', '#f97316', '#f59e0b', '#84cc16', 
+                            '#ef4444', '#f97316', '#f59e0b', '#84cc16',
                             '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'
                         ],
                         borderWidth: 0
@@ -1591,17 +1591,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // mesInput formato: "YYYY-MM"
             const year = mesInput.split('-')[0];
             const month = mesInput.split('-')[1];
-            
+
             // Rango del mes
             const startDate = `${year}-${month}-01`;
             const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Último día del mes
-            
+
             // Obtener ventas
             const ventas = await window.dexterDB.getVentas(startDate, endDate, user.comercio_id);
-            
+
             // Obtener gastos
             const gastos = await window.dexterDB.getGastos(startDate, endDate, user.comercio_id);
-            
+
             // Obtener productos (para sacar el costo de las ventas y la ganancia)
             const productos = await window.dexterDB.getProductos(user.comercio_id);
             const prodMap = new Map(productos.map(p => [p.id, p]));
@@ -1624,10 +1624,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             const utilidadNeta = totalVentasBrutas - totalCostoVentas - totalGastos;
-            
+
             // Formateadores
             const money = (val) => '$' + val.toFixed(2);
-            
+
             // Construir HTML oculto para el PDF
             const pdfContainer = document.createElement('div');
             pdfContainer.style.padding = '20px';
@@ -1637,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             pdfContainer.style.width = '700px';
 
             const comercioNombre = user.comercio ? user.comercio.nombre.toUpperCase() : 'COMERCIO';
-            
+
             pdfContainer.innerHTML = `
                 <div style="text-align:center; border-bottom: 2px solid #22c55e; padding-bottom:20px; margin-bottom:30px;">
                     <h1 style="margin:0; color:#1a1a1a; font-size:28px;">${comercioNombre}</h1>
@@ -1673,9 +1673,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </thead>
                     <tbody>
                         ${ventas.map(v => {
-                            const p = prodMap.get(v.producto_id);
-                            const nombreProd = p ? p.nombre : 'Producto Eliminado';
-                            return `
+                const p = prodMap.get(v.producto_id);
+                const nombreProd = p ? p.nombre : 'Producto Eliminado';
+                return `
                             <tr>
                                 <td style="padding:10px; border-bottom:1px solid #f1f5f9;">${v.fecha.split('T')[0]}</td>
                                 <td style="padding:10px; border-bottom:1px solid #f1f5f9;">${nombreProd}</td>
@@ -1683,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <td style="padding:10px; border-bottom:1px solid #f1f5f9; text-align:right; color:#16a34a;">+${money(v.total)}</td>
                             </tr>
                             `;
-                        }).join('')}
+            }).join('')}
                     </tbody>
                 </table>
                 ` : '<p style="color:#666; font-size:14px; margin-bottom:30px;">No se registraron ventas en este mes.</p>'}
@@ -1719,12 +1719,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Configurar html2pdf
             const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `Reporte_Financiero_${comercioNombre}_${year}_${month}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
+                margin: [10, 10, 10, 10],
+                filename: `Reporte_Financiero_${comercioNombre}_${year}_${month}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
             };
 
             // Generar y descargar
@@ -1878,15 +1878,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const datalist = document.getElementById('comerciosList');
         const searchInput = document.getElementById('superadminSearchComercio');
         const hiddenSelect = document.getElementById('superadminSelectComercio');
-        
+
         const comercios = await window.electronAPI.getComercios();
-        
+
         let optionsHtml = '';
         comercios.forEach(c => {
             optionsHtml += `<option value="${c.nombre} (ID: #${c.id})" data-id="${c.id}"></option>`;
         });
         datalist.innerHTML = optionsHtml;
-        
+
         // Limpiar
         searchInput.value = '';
         hiddenSelect.value = '';
@@ -1897,7 +1897,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const val = e.target.value;
         const datalist = document.getElementById('comerciosList');
         const hiddenSelect = document.getElementById('superadminSelectComercio');
-        
+
         // Buscar la opción seleccionada
         const option = Array.from(datalist.options).find(opt => opt.value === val);
         if (option) {
@@ -1913,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const comercioId = e.target.value;
         const container = document.getElementById('superadminPersonalContainer');
         const tbody = document.getElementById('superadminPersonalTableBody');
-        
+
         if (!comercioId) {
             container.style.display = 'none';
             return;
@@ -1921,9 +1921,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         container.style.display = 'grid';
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Cargando personal...</td></tr>';
-        
+
         const usuarios = await window.electronAPI.getUsuarios(comercioId);
-        
+
         if (usuarios.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Este cliente no tiene cuentas adicionales.</td></tr>';
             return;
@@ -1934,7 +1934,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let btnActionHtml = '';
 
             if (u.rol === 'superadmin') return ''; // No mostrar al superadmin en la lista
-            
+
             if (u.rol === 'admin') {
                 rolHtml = '<span class="badge badge-success">Administrador Principal</span>';
                 btnActionHtml = '<span style="font-size:12px; color:var(--text-muted);">-</span>'; // El admin principal no se desactiva aquí
@@ -1974,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.saToggleUserRole = async (id, currentRole, comercioId) => {
         let nuevoRol = currentRole === 'inactivo' ? 'vendedor' : 'inactivo';
         if (nuevoRol === 'inactivo' && !confirm('¿Estás seguro de desactivar esta cuenta?')) return;
-        
+
         const res = await window.electronAPI.updateUsuarioRol(id, nuevoRol);
         if (res.success) {
             showToast('Actualizado', 'Rol de usuario actualizado.', 'success');
@@ -1987,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.saDeleteUser = async (id, comercioId) => {
         if (!confirm('¿Estás SEGURO de eliminar PERMANENTEMENTE a este trabajador? Esta acción no se puede deshacer.')) return;
-        
+
         const res = await window.electronAPI.deleteUsuario(id);
         if (res.success) {
             showToast('Eliminado', 'Trabajador eliminado permanentemente.', 'info');
@@ -2050,10 +2050,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnConfirmarRenovacion')?.addEventListener('click', async () => {
         if (!tenantEnRenovacion) return;
-        
+
         const diasStr = document.getElementById('renovarDiasInput').value;
         const dias = parseInt(diasStr);
-        
+
         if (isNaN(dias) || dias === 0) {
             showToast('Error', 'Ingresa una cantidad válida de días diferente de 0.', 'error');
             return;
@@ -2204,12 +2204,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (!p) p = await window.electronAPI.getProducto(pId);
         if (!p) return;
-        
+
         const adjust = parseInt(document.getElementById('quStockAdjust').value) || 0;
         const newPrice = parseFloat(document.getElementById('quPrice').value);
-        
+
         if (!isNaN(newPrice)) p.precioVenta = newPrice;
-        
+
         if (!p.variantes) p.variantes = [];
         if (p.variantes.length === 0) {
             p.variantes.push({ talla: 'Única', color: 'Único', stock: Math.max(0, p.stock + adjust) });
@@ -2241,9 +2241,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tbody = document.getElementById('pedidosWebTableBody');
         if (!tbody) return;
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando pedidos...</td></tr>';
-        
+
         const pedidos = await window.electronAPI.getPedidosWeb();
-        
+
         if (!pedidos || pedidos.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No hay pedidos registrados en la tienda en línea.</td></tr>';
             return;
@@ -2255,7 +2255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let badgeClass = 'badge-warning'; // pendiente
             if (p.estado === 'confirmado') badgeClass = 'badge-success';
             if (p.estado === 'anulado') badgeClass = 'badge-danger';
-            
+
             const fecha = new Date(p.fecha).toLocaleString();
 
             return `
@@ -2283,7 +2283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('pedidoWebCliente').textContent = pedido.cliente_nombre;
         document.getElementById('pedidoWebFecha').textContent = new Date(pedido.fecha).toLocaleString();
         document.getElementById('pedidoWebTotal').textContent = `$${pedido.total.toFixed(2)}`;
-        
+
         const badge = document.getElementById('pedidoWebEstado');
         badge.textContent = pedido.estado.toUpperCase();
         badge.className = 'badge';
@@ -2294,10 +2294,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const list = document.getElementById('pedidoWebArticulosList');
         if (pedido.detalles_pedido && pedido.detalles_pedido.length > 0) {
             list.innerHTML = pedido.detalles_pedido.map(item => {
-                const imgHtml = item.imagen_url 
+                const imgHtml = item.imagen_url
                     ? `<img src="${item.imagen_url}" alt="${item.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                     : `<div style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-image" style="color: var(--text-muted);"></i></div>`;
-                
+
                 return `
                 <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:6px;">
                     <div style="display:flex; align-items: center;">
@@ -2338,7 +2338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.confirmarPedidoWeb = async (id) => {
         if (!confirm('¿Deseas confirmar el pedido? Esto registrará la venta y descontará el stock.')) return;
-        
+
         const pedido = window.currentPedidosWeb.find(p => p.id === id);
         if (!pedido) return;
 
