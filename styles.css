@@ -1080,6 +1080,8 @@ body {
     grid-template-columns: 2fr 2fr 1fr auto;
     gap: 8px;
     align-items: center;
+    min-height: 45px;
+    width: 100%;
 }
 
 .variant-input {
