@@ -293,6 +293,36 @@ try {
       const { data: vRecord, error: vErr } = await getBusinessDB().from('ventas').select('*').eq('id', ventaId).single();
       if (vErr) throw vErr;
 
+      // Asegurar que exista un ticket_codigo para agrupar
+      let ticketCodigo = vRecord.ticket_codigo;
+      if (!ticketCodigo) {
+          ticketCodigo = `TKT-OLD-${ventaId}`;
+          await getBusinessDB().from('ventas').update({ ticket_codigo: ticketCodigo }).eq('id', ventaId);
+      }
+
+      // Calcular cuántos artículos se han devuelto ya de este ticket y producto
+      const { data: allTicketVentas } = await getBusinessDB().from('ventas')
+        .select('cantidad')
+        .eq('ticket_codigo', ticketCodigo)
+        .eq('producto_id', vRecord.producto_id);
+      
+      let totalComprado = 0;
+      let totalDevuelto = 0;
+      if (allTicketVentas) {
+          allTicketVentas.forEach(v => {
+              if (v.cantidad > 0) totalComprado += v.cantidad;
+              else totalDevuelto += Math.abs(v.cantidad);
+          });
+      } else {
+          totalComprado = vRecord.cantidad;
+      }
+
+      const maxAvailableToReturn = totalComprado - totalDevuelto;
+
+      if (cantidadRestock > maxAvailableToReturn) {
+          return { success: false, error: `Límite excedido. Solo puedes devolver hasta ${maxAvailableToReturn} unidades de este artículo.` };
+      }
+
       // Crear ticket negativo
       const negativeVenta = {
         producto_id: vRecord.producto_id,
@@ -300,7 +330,8 @@ try {
         precio_unitario: vRecord.precio_unitario,
         total: -(cantidadRestock * vRecord.precio_unitario),
         fecha: new Date().toISOString(),
-        comercio_id: vRecord.comercio_id
+        comercio_id: vRecord.comercio_id,
+        ticket_codigo: ticketCodigo
       };
       
       const { error: insertErr } = await getBusinessDB().from('ventas').insert([negativeVenta]);

@@ -580,15 +580,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Calcular devoluciones para restar a las compras originales
+        const devolucionesMap = {};
+        ventas.forEach(v => {
+            if (v.cantidad < 0 && v.ticket_codigo) {
+                const key = `${v.ticket_codigo}_${v.producto_id}`;
+                devolucionesMap[key] = (devolucionesMap[key] || 0) + Math.abs(v.cantidad);
+            }
+        });
+
         tbody.innerHTML = ventas.map(v => {
             const p = prodMap.get(v.producto_id);
             const date = new Date(v.fecha);
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const isDevolucion = v.cantidad < 0;
             const trStyle = isDevolucion ? 'background: rgba(239, 68, 68, 0.05);' : '';
-            const actionBtn = isDevolucion ?
-                `<span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger-red);">Devolución</span>` :
-                `<button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${v.cantidad})" title="Anular venta y devolver dinero"><i class="fa-solid fa-rotate-left"></i> Anular</button>`;
+            
+            let actionBtn = '';
+            if (isDevolucion) {
+                actionBtn = `<span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger-red);">Devolución</span>`;
+            } else {
+                const key = v.ticket_codigo ? `${v.ticket_codigo}_${v.producto_id}` : null;
+                const yaDevuelto = key ? (devolucionesMap[key] || 0) : 0;
+                const maxDisponible = v.cantidad - yaDevuelto;
+
+                if (maxDisponible <= 0) {
+                    actionBtn = `<span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-muted);"><i class="fa-solid fa-check"></i> Total Devuelto</span>`;
+                } else {
+                    actionBtn = `<button class="btn btn-danger btn-small" onclick="anularVenta(${v.id}, ${v.producto_id}, '${p ? p.nombre.replace(/'/g, "\\'") : 'Producto Eliminado'}', ${maxDisponible})" title="Anular venta y devolver dinero"><i class="fa-solid fa-rotate-left"></i> Anular</button>`;
+                }
+            }
 
             return `
                 <tr style="${trStyle}">
