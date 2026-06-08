@@ -655,6 +655,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     document.getElementById('btnConfirmReturnVariant')?.addEventListener('click', async (e) => {
+        const cantidadInput = document.getElementById('rvCantidadAnular').value;
+        if (!cantidadInput || isNaN(cantidadInput) || parseInt(cantidadInput) < 1) {
+            showToast('Cantidad Inválida', 'Por favor ingresa una cantidad válida a devolver.', 'error');
+            return;
+        }
+
         const btn = e.target.closest('button') || document.getElementById('btnConfirmReturnVariant');
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
