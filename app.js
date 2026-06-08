@@ -1161,13 +1161,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================
     // AGREGAR / EDITAR PRODUCTOS Y VARIANTES
     // =========================================================
-    let variantesEditor = [];
+    let variantesEditor = [{ talla: '', color: '', stock: 0 }];
 
     function renderVariantesEditor() {
         const list = document.getElementById('variantesList');
         if (variantesEditor.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding:10px;">No hay variantes. El stock se considerará 0.</div>';
-            return;
+            variantesEditor = [{ talla: '', color: '', stock: 0 }];
         }
 
         list.innerHTML = variantesEditor.map((v, index) => `
@@ -1175,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <input type="text" class="variant-input" value="${v.talla}" placeholder="Ej: UNITALLA / L" onchange="updateVar(${index}, 'talla', this.value)" style="color:var(--text-primary);" required>
                 <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO / N/A" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);" required>
                 <input type="number" class="variant-input" value="${v.stock}" placeholder="0" min="0" onchange="updateVar(${index}, 'stock', this.value)" style="color:var(--text-primary);" required>
-                <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash"></i></button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2); visibility: ${variantesEditor.length > 1 ? 'visible' : 'hidden'};"><i class="fa-solid fa-trash"></i></button>
             </div>
         `).join('');
     }
@@ -1185,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     window.removeVar = (index) => {
+        if (variantesEditor.length <= 1) return;
         variantesEditor.splice(index, 1);
         renderVariantesEditor();
     };
