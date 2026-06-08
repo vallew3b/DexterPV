@@ -1048,7 +1048,6 @@ body {
     padding: 16px;
     margin-top: 8px;
     background: rgba(0, 0, 0, 0.2);
-    overflow-x: auto;
 }
 
 .variants-table-header {
@@ -1061,18 +1060,13 @@ body {
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
-    min-width: 500px;
 }
 
 .variants-list {
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
-    overflow-x: hidden;
     margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 500px;
+    display: block; /* Fixes WebKit flex-collapse bug */
 }
 
 .variant-row {
@@ -1080,7 +1074,7 @@ body {
     grid-template-columns: 2fr 2fr 1fr auto;
     gap: 8px;
     align-items: center;
-    min-height: 45px;
+    margin-bottom: 8px;
     width: 100%;
 }
 
@@ -1163,6 +1157,38 @@ body {
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         background: #ffffff;
+    }
+    
+    /* Layout apto para celulares y tablets pequeñas en la matriz de variantes */
+    .variants-table-header {
+        display: none !important;
+    }
+    
+    .variants-list {
+        max-height: none;
+        overflow-y: visible;
+    }
+    
+    .variant-row {
+        display: flex !important;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-dark);
+        margin-bottom: 12px;
+    }
+    
+    .variant-row .variant-input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    .variant-row .btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 4px;
     }
 }
 
