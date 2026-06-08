@@ -1172,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         list.innerHTML = variantesEditor.map((v, index) => `
             <div class="variant-row">
                 <input type="text" class="variant-input" value="${v.talla}" placeholder="Ej: UNITALLA / L" onchange="updateVar(${index}, 'talla', this.value)" style="color:var(--text-primary);" required>
-                <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO / N/A" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);" required>
+                <input type="text" class="variant-input" value="${v.color}" placeholder="Ej: ROJO (Opcional)" onchange="updateVar(${index}, 'color', this.value)" style="color:var(--text-primary);">
                 <input type="number" class="variant-input" value="${v.stock}" placeholder="0" min="0" onchange="updateVar(${index}, 'stock', this.value)" style="color:var(--text-primary);" required>
                 <button type="button" class="btn btn-secondary btn-small" onclick="removeVar(${index})" style="color:var(--danger); height:100%; border:1px solid rgba(239, 68, 68, 0.2); visibility: ${variantesEditor.length > 1 ? 'visible' : 'hidden'};"><i class="fa-solid fa-trash"></i></button>
             </div>
