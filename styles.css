@@ -1048,11 +1048,12 @@ body {
     padding: 16px;
     margin-top: 8px;
     background: rgba(0, 0, 0, 0.2);
+    overflow-x: auto;
 }
 
 .variants-table-header {
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr 2fr auto;
+    grid-template-columns: 2fr 2fr 1fr auto;
     gap: 8px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border-dark);
@@ -1060,20 +1061,23 @@ body {
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
+    min-width: 500px;
 }
 
 .variants-list {
     max-height: 200px;
     overflow-y: auto;
+    overflow-x: hidden;
     margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 500px;
 }
 
 .variant-row {
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr 2fr auto;
+    grid-template-columns: 2fr 2fr 1fr auto;
     gap: 8px;
     align-items: center;
 }
