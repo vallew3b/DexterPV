@@ -630,31 +630,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('returnVariantModal').classList.remove('active');
     };
 
-    document.getElementById('btnConfirmReturnVariant')?.addEventListener('click', async () => {
-        const ventaId = document.getElementById('rvVentaId').value;
-        const maxCantidad = parseInt(document.getElementById('rvMaxCantidad').value) || 0;
-        let cantidadAnular = parseInt(document.getElementById('rvCantidadAnular').value) || 0;
-        const varianteId = document.getElementById('rvSelectVariante').value;
+    document.getElementById('btnConfirmReturnVariant')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button') || document.getElementById('btnConfirmReturnVariant');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
 
-        if (cantidadAnular < 1) cantidadAnular = 1;
-        if (cantidadAnular > maxCantidad) cantidadAnular = maxCantidad;
+        try {
+            const ventaId = document.getElementById('rvVentaId').value;
+            const maxCantidad = parseInt(document.getElementById('rvMaxCantidad').value) || 0;
+            let cantidadAnular = parseInt(document.getElementById('rvCantidadAnular').value) || 0;
+            const varianteId = document.getElementById('rvSelectVariante').value;
 
-        const productoNombre = document.getElementById('rvProductName').textContent;
-        const precioInventario = parseFloat(document.getElementById('rvProductName').dataset.precioInventario) || 0;
+            if (cantidadAnular < 1) cantidadAnular = 1;
+            if (cantidadAnular > maxCantidad) cantidadAnular = maxCantidad;
 
-        const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidadAnular, precioInventario, productoNombre);
-        if (res.success) {
-            if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
-            else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');
+            const productoNombre = document.getElementById('rvProductName').textContent;
+            const precioInventario = parseFloat(document.getElementById('rvProductName').dataset.precioInventario) || 0;
 
-            closeReturnVariantModal();
-            const fecha = document.getElementById('fechaHistorial').value;
-            if (fecha) loadHistorialVentas(fecha, fecha);
-            if (document.getElementById('inventario') && document.getElementById('inventario').classList.contains('active')) {
-                loadInventarioTable();
+            const res = await window.electronAPI.returnVenta(ventaId, varianteId, cantidadAnular, precioInventario, productoNombre);
+            if (res.success) {
+                if (varianteId) showToast('Venta Anulada', `Venta anulada y stock devuelto exitosamente.`, 'success');
+                else showToast('Venta Anulada', `Venta anulada (sin devolución de stock).`, 'info');
+
+                closeReturnVariantModal();
+                const fecha = document.getElementById('fechaHistorial').value;
+                if (fecha) loadHistorialVentas(fecha, fecha);
+                if (document.getElementById('inventario') && document.getElementById('inventario').classList.contains('active')) {
+                    loadInventarioTable();
+                }
+            } else {
+                showToast('Error', 'No se pudo anular: ' + res.error, 'error');
             }
-        } else {
-            showToast('Error', 'No se pudo anular: ' + res.error, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     });
 
@@ -890,27 +900,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateCartUI();
     });
 
-    document.getElementById('procesarVenta')?.addEventListener('click', async () => {
+    document.getElementById('procesarVenta')?.addEventListener('click', async (e) => {
         if (cart.length === 0) {
             showToast('Carrito vacío', 'Añade productos antes de procesar.', 'warning');
             return;
         }
 
-        const ventasPayload = cart.map(item => ({
-            producto_id: item.product_id,
-            variante_id: item.variant_id,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario
-        }));
+        const btn = e.target.closest('button') || document.getElementById('procesarVenta');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
 
-        const res = await window.electronAPI.addVentaMultiple(ventasPayload);
-        if (res.success) {
-            showToast('¡Venta Procesada!', 'La transacción se registró con éxito y el stock fue actualizado.', 'success');
-            cart = [];
-            updateCartUI();
-            loadPOSCatalog(); // Refrescar catálogo para nuevo stock
-        } else {
-            showToast('Error', 'No se pudo procesar la venta.', 'error');
+        try {
+            const ventasPayload = cart.map(item => ({
+                producto_id: item.product_id,
+                variante_id: item.variant_id,
+                cantidad: item.cantidad,
+                precio_unitario: item.precio_unitario
+            }));
+
+            const res = await window.electronAPI.addVentaMultiple(ventasPayload);
+            if (res.success) {
+                showToast('¡Venta Procesada!', 'La transacción se registró con éxito y el stock fue actualizado.', 'success');
+                cart = [];
+                updateCartUI();
+                loadPOSCatalog(); // Refrescar catálogo para nuevo stock
+            } else {
+                showToast('Error', 'No se pudo procesar la venta.', 'error');
+            }
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     });
 
