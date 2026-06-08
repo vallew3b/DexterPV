@@ -541,19 +541,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnBuscarHistorial')?.addEventListener('click', async () => {
         const fecha = document.getElementById('fechaHistorial').value;
-        if (fecha) await loadHistorialVentas(fecha, fecha);
+        const ticketSearch = document.getElementById('buscarTicketHistorial')?.value.trim();
+
+        if (ticketSearch) {
+            await loadHistorialVentas(null, null, ticketSearch);
+        } else if (fecha) {
+            await loadHistorialVentas(fecha, fecha, null);
+        }
     });
 
-    async function loadHistorialVentas(start, end) {
-        const tbody = document.getElementById('ventasTableBody');
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Cargando historial...</td></tr>';
+    // Permitir buscar al presionar Enter en el input de ticket
+    document.getElementById('buscarTicketHistorial')?.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('btnBuscarHistorial').click();
+        }
+    });
 
-        const ventas = await window.electronAPI.getVentas(start, end);
+    async function loadHistorialVentas(start, end, ticketCodigo = null) {
+        const tbody = document.getElementById('ventasTableBody');
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Cargando historial...</td></tr>';
+
+        let ventas = [];
+        if (ticketCodigo) {
+            ventas = await window.electronAPI.getVentasByTicket(ticketCodigo);
+        } else {
+            ventas = await window.electronAPI.getVentas(start, end);
+        }
+
         const productos = await window.electronAPI.getProductos();
         const prodMap = new Map(productos.map(p => [p.id, p]));
 
         if (ventas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No hay ventas registradas en esta fecha.</td></tr>';
+            if (ticketCodigo) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No se encontró ningún ticket con ese código.</td></tr>';
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No hay ventas registradas en esta fecha.</td></tr>';
+            }
             return;
         }
 
@@ -570,6 +593,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <tr style="${trStyle}">
                     <td>${date.toLocaleDateString()} <span style="color:var(--text-muted); font-size:11px;">${timeStr}</span></td>
+                    <td><span class="badge" style="background:rgba(59, 130, 246, 0.1); color:#3b82f6; border:1px solid rgba(59, 130, 246, 0.2); font-family:monospace;">${v.ticket_codigo || 'N/A'}</span></td>
                     <td><span class="badge" style="background:rgba(255,255,255,0.05);">${p ? p.codigo : 'N/A'}</span></td>
                     <td style="font-weight:600; ${isDevolucion ? 'color:var(--danger-red);' : ''}">${p ? p.nombre : 'Producto Eliminado'}</td>
                     <td style="${isDevolucion ? 'color:var(--danger-red);' : ''}">${v.cantidad} un.</td>

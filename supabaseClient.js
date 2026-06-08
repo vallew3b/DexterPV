@@ -240,9 +240,16 @@ try {
       const targetId = getActiveComercioId(comercioId);
       if (!targetId) return { success: false, error: 'Comercio no especificado.' };
       const fecha = new Date().toISOString();
+      
+      // Generar un código de ticket único para este grupo de ventas
+      const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const timePart = Date.now().toString().slice(-4);
+      const ticketCodigo = `TKT-${randomPart}-${timePart}`;
+
       const ventasPayload = ventasArray.map(item => ({
         producto_id: item.producto_id, cantidad: item.cantidad, precio_unitario: item.precio_unitario,
-        total: item.cantidad * item.precio_unitario, fecha: fecha, comercio_id: targetId
+        total: item.cantidad * item.precio_unitario, fecha: fecha, comercio_id: targetId,
+        ticket_codigo: ticketCodigo
       }));
       const { error: vErr } = await getBusinessDB().from('ventas').insert(ventasPayload);
       if (vErr) throw vErr;
@@ -264,6 +271,17 @@ try {
       let query = getBusinessDB().from('ventas').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
       if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (err) { return []; }
+  };
+
+  window.dexterDB.getVentasByTicket = async (ticketCodigo, comercioId) => {
+    try {
+      const targetId = getActiveComercioId(comercioId);
+      let query = getBusinessDB().from('ventas').select('*').ilike('ticket_codigo', `%${ticketCodigo}%`);
+      if (targetId) query = query.eq('comercio_id', targetId);
       const { data, error } = await query;
       if (error) throw error;
       return data || [];

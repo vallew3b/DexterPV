@@ -63,7 +63,8 @@ CREATE TABLE public.ventas (
     precio_unitario DECIMAL(12, 2) NOT NULL,
     total DECIMAL(12, 2) NOT NULL,
     fecha TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    comercio_id INTEGER NOT NULL REFERENCES public.comercios(id) ON DELETE CASCADE
+    comercio_id INTEGER NOT NULL REFERENCES public.comercios(id) ON DELETE CASCADE,
+    ticket_codigo VARCHAR(50)
 );
 
 -- 6. TABLA GASTOS
