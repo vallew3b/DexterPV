@@ -270,7 +270,11 @@ try {
       const targetId = getActiveComercioId(comercioId);
       let query = getBusinessDB().from('ventas').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
-      if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
+      if (fechaInicio && fechaFin) {
+          const startUTC = new Date(fechaInicio + 'T00:00:00').toISOString();
+          const endUTC = new Date(fechaFin + 'T23:59:59').toISOString();
+          query = query.gte('fecha', startUTC).lte('fecha', endUTC);
+      }
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
@@ -359,6 +363,11 @@ try {
     } catch (err) { return { success: false, error: err.message }; }
   };
 
+  window.dexterDB.getLocalStr = (dStr) => {
+      const d = dStr ? new Date(dStr) : new Date();
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  };
+
   window.dexterDB.getEstadisticas = async (comercioId) => {
     try {
       const targetId = getActiveComercioId(comercioId);
@@ -372,9 +381,9 @@ try {
         const p = prodMap.get(v.producto_id);
         if (p) gananciasTotales += ((v.precio_unitario - (p.precioInventario || 0)) * v.cantidad);
       });
-      const hoyStr = new Date().toISOString().split('T')[0];
-      const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoyStr).reduce((sum, v) => sum + (v.total || 0), 0);
-      const devolucionesHoy = Math.abs(ventas.filter(v => v.fecha.split('T')[0] === hoyStr && (v.total < 0)).reduce((sum, v) => sum + (v.total || 0), 0));
+      const hoyStr = window.dexterDB.getLocalStr();
+      const ventasHoy = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha) === hoyStr).reduce((sum, v) => sum + (v.total || 0), 0);
+      const devolucionesHoy = Math.abs(ventas.filter(v => window.dexterDB.getLocalStr(v.fecha) === hoyStr && (v.total < 0)).reduce((sum, v) => sum + (v.total || 0), 0));
       
       // Gráfica últimos 6 meses
       const grafico = { labels: [], data: [] };
@@ -386,7 +395,7 @@ try {
         const monthPrefix = `${year}-${month}`;
         
         const label = d.toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
-        const suma = ventas.filter(v => v.fecha.startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
+        const suma = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha).startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
         
         grafico.labels.push(label);
         grafico.data.push(parseFloat(suma.toFixed(2)));
@@ -408,7 +417,11 @@ try {
       const targetId = getActiveComercioId(comercioId);
       let query = getBusinessDB().from('gastos').select('*');
       if (targetId) query = query.eq('comercio_id', targetId);
-      if (fechaInicio && fechaFin) query = query.gte('fecha', fechaInicio + 'T00:00:00').lte('fecha', fechaFin + 'T23:59:59');
+      if (fechaInicio && fechaFin) {
+          const startUTC = new Date(fechaInicio + 'T00:00:00').toISOString();
+          const endUTC = new Date(fechaFin + 'T23:59:59').toISOString();
+          query = query.gte('fecha', startUTC).lte('fecha', endUTC);
+      }
       const { data, error } = await query.order('fecha', { ascending: false });
       if (error) throw error;
       return data || [];

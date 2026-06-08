@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadPOSCatalog(isMobile ? 'ESCANER' : 'TODAS');
         }
         else if (sectionId === 'historial') {
-            const hoyStr = new Date().toISOString().split('T')[0];
+            const hoyStr = window.dexterDB.getLocalStr();
             document.getElementById('fechaHistorial').value = hoyStr;
             loadHistorialVentas(hoyStr, hoyStr);
         }
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Historial por defecto hoy
-            const hoyStr = new Date().toISOString().split('T')[0];
+            const hoyStr = window.dexterDB.getLocalStr();
             document.getElementById('fechaHistorial').value = hoyStr;
             await loadHistorialVentas(hoyStr, hoyStr);
         } catch (e) {
@@ -1544,7 +1544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (filtroMes) {
             const [year, month] = filtroMes.split('-');
             fechaInicio = `${year}-${month}-01`;
-            fechaFin = new Date(year, month, 0).toISOString().split('T')[0];
+            fechaFin = window.dexterDB.getLocalStr(new Date(year, month, 0));
         }
 
         const gastos = await window.electronAPI.getGastos(fechaInicio, fechaFin);
@@ -1665,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Rango del mes
             const startDate = `${year}-${month}-01`;
-            const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Último día del mes
+            const endDate = window.dexterDB.getLocalStr(new Date(year, month, 0)); // Último día del mes
 
             // Obtener ventas
             const ventas = await window.dexterDB.getVentas(startDate, endDate, user.comercio_id);
