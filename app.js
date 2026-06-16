@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 : `<div class="producto-card-img">${initial}</div>`;
 
             return `
-                <div class="producto-card glass-panel ${!hasStock ? 'sin-stock' : ''}" onclick="openVariantSelector(${p.id})">
+                <div class="producto-card glass-panel ${!hasStock ? 'sin-stock' : ''}" onclick="openVariantSelector(${p.id})" title="${p.nombre}">
                     ${imgHtml}
                     <div class="producto-card-name" title="${p.nombre}">${p.nombre}</div>
                     <div class="producto-card-price">$${(p.precioVenta || 0).toFixed(2)}</div>
