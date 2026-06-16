@@ -632,7 +632,7 @@ body {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--dark-obsidian);
+    background-color: var(--tuleto-dark);
     color: #fff;
     text-align: center;
     padding: 6px 10px;
