@@ -622,7 +622,35 @@ body {
     padding: 16px;
     text-align: center;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; removed for tooltip */
+}
+
+.producto-card-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-obsidian);
+    color: #fff;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: normal;
+    width: max-content;
+    max-width: 200px;
+    z-index: 100;
+    transition: opacity 0.1s;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin-bottom: 5px;
+}
+
+.producto-card:hover .producto-card-tooltip {
+    visibility: visible;
+    opacity: 1;
 }
 
 .producto-card:hover {

@@ -772,14 +772,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (searchTerm) {
-            const term = searchTerm.toLowerCase();
+            const terms = searchTerm.toLowerCase().split(/\s+/).filter(t => t);
             let baseList = category === 'ESCANER' ? todosLosProductos : productosFiltrados;
-            productosFiltrados = baseList.filter(p =>
-                p.nombre.toLowerCase().includes(term) ||
-                p.codigo.toLowerCase().includes(term) ||
-                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term)) ||
-                (p.descripcion && p.descripcion.toLowerCase().includes(term))
-            );
+            productosFiltrados = baseList.filter(p => {
+                const searchString = [
+                    p.nombre,
+                    p.codigo,
+                    p.codigo_barras || '',
+                    p.descripcion || '',
+                    p.categoria || '',
+                    ...(p.variantes || []).map(v => `${v.talla || ''} ${v.color || ''}`)
+                ].join(' ').toLowerCase();
+                
+                return terms.every(t => searchString.includes(t));
+            });
         }
 
         // Ordenar productos: con stock primero, sin stock (fantasmas) al final
@@ -811,9 +817,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 : `<div class="producto-card-img">${initial}</div>`;
 
             return `
-                <div class="producto-card glass-panel ${!hasStock ? 'sin-stock' : ''}" onclick="openVariantSelector(${p.id})" title="${p.nombre}">
+                <div class="producto-card glass-panel ${!hasStock ? 'sin-stock' : ''}" onclick="openVariantSelector(${p.id})">
+                    <div class="producto-card-tooltip">${p.nombre}</div>
                     ${imgHtml}
-                    <div class="producto-card-name" title="${p.nombre}">${p.nombre}</div>
+                    <div class="producto-card-name">${p.nombre}</div>
                     <div class="producto-card-price">$${(p.precioVenta || 0).toFixed(2)}</div>
                     <div class="producto-card-stock ${stockTotal <= 5 ? 'bajo' : ''}">Stock: ${stockTotal}</div>
                 </div>
