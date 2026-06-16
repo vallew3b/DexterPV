@@ -632,12 +632,14 @@ body {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--tuleto-dark);
-    color: #fff;
+    background-color: var(--dark-card-solid);
+    color: var(--text-primary);
+    border: 1px solid var(--border-dark);
     text-align: center;
     padding: 6px 10px;
     border-radius: 6px;
     font-size: 12px;
+    font-weight: 600;
     white-space: normal;
     width: max-content;
     max-width: 200px;
