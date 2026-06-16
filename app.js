@@ -1081,12 +1081,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Filtro Búsqueda
         if (currentInventarioSearch) {
-            filtered = filtered.filter(p =>
-                (p.nombre && p.nombre.toLowerCase().includes(currentInventarioSearch)) ||
-                (p.codigo && p.codigo.toLowerCase().includes(currentInventarioSearch)) ||
-                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(currentInventarioSearch)) ||
-                (p.descripcion && p.descripcion.toLowerCase().includes(currentInventarioSearch))
-            );
+            const terms = currentInventarioSearch.toLowerCase().split(/\s+/).filter(t => t);
+            filtered = filtered.filter(p => {
+                const searchString = [
+                    p.nombre,
+                    p.codigo,
+                    p.codigo_barras || '',
+                    p.descripcion || '',
+                    p.categoria || '',
+                    ...(p.variantes || []).map(v => `${v.talla || ''} ${v.color || ''}`)
+                ].join(' ').toLowerCase();
+                
+                return terms.every(t => searchString.includes(t));
+            });
         }
 
         // Filtro Categoría
