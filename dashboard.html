@@ -1046,24 +1046,78 @@
 
     <!-- MODAL: DETALLES DE PEDIDO WEB -->
     <div id="detallesPedidoWebModal" class="modal">
-        <div class="modal-content glass-panel" style="max-width: 500px;">
+        <div class="modal-content glass-panel" style="max-width: 600px;">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fa-solid fa-list-check"></i> Detalles del Pedido Web</h3>
+                <h3 class="modal-title"><i class="fa-solid fa-truck-fast"></i> Gestionar Pedido Web</h3>
                 <button class="modal-close" onclick="closePedidoWebModal()">&times;</button>
             </div>
-            <div class="modal-body" style="padding: 20px;">
-                <div style="margin-bottom: 15px;">
-                    <strong>Cliente:</strong> <span id="pedidoWebCliente"></span>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Fecha:</strong> <span id="pedidoWebFecha"></span>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Estado:</strong> <span id="pedidoWebEstado" class="badge"></span>
-                </div>
+            <div class="modal-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
                 
-                <h4 style="margin-bottom: 10px; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;">Artículos:</h4>
-                <div id="pedidoWebArticulosList" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+                <!-- Info General del Cliente y Pedido -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-dark);">
+                    <div>
+                        <strong>Cliente:</strong> <span id="pedidoWebCliente" style="color: var(--text-primary); font-weight: 600;"></span>
+                    </div>
+                    <div>
+                        <strong>Fecha:</strong> <span id="pedidoWebFecha"></span>
+                    </div>
+                    <div>
+                        <strong>Contacto:</strong> <span id="pedidoWebContacto"></span>
+                    </div>
+                    <div>
+                        <strong>Estado Actual:</strong> <span id="pedidoWebEstado" class="badge"></span>
+                    </div>
+                </div>
+
+                <!-- Dirección de Envío -->
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--primary-emerald);"><i class="fa-solid fa-location-dot"></i> Datos / Domicilio de Envío:</strong>
+                    <div id="pedidoWebDireccion" style="background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; font-size: 13.5px; border: 1px solid var(--border-dark); margin-top: 6px; white-space: pre-wrap; color: var(--text-primary);">
+                        Sin datos de envío registrados.
+                    </div>
+                </div>
+
+                <!-- Sección: Asignar Rastreo y Actualizar Estado -->
+                <div style="background: rgba(201, 162, 101, 0.06); border: 1px solid rgba(201, 162, 101, 0.25); border-radius: 10px; padding: 15px; margin-bottom: 18px;">
+                    <h4 style="margin-bottom: 12px; color: #c9a265; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-box-archive"></i> Asignar Guía y Estado del Envío
+                    </h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Empresa / Paquetería:</label>
+                            <select id="pedidoWebPaqueteriaSelect" class="form-control" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                                <option value="Correos de México">Correos de México</option>
+                                <option value="Estafeta">Estafeta</option>
+                                <option value="DHL">DHL</option>
+                                <option value="FedEx">FedEx</option>
+                                <option value="Redpack">Redpack</option>
+                                <option value="J&T Express">J&T Express</option>
+                                <option value="Otra">Otra Paquetería</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Número de Rastreo / Guía:</label>
+                            <input type="text" id="pedidoWebTrackingInput" class="form-control" placeholder="Ej. 9988776655" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Actualizar Estado en el Sitio Web:</label>
+                        <select id="pedidoWebEstadoSelect" class="form-control" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="pendiente_pago">Pendiente de Pago</option>
+                            <option value="aprobado">Aprobado / Confirmado</option>
+                            <option value="pendiente_envio">Pendiente de Envío (En Proceso)</option>
+                            <option value="enviado">Enviado (con Rastreo)</option>
+                            <option value="denegado">Denegado / Rechazado</option>
+                            <option value="anulado">Anulado / Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 10px; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;"><i class="fa-solid fa-basket-shopping"></i> Artículos Comprados:</h4>
+                <div id="pedidoWebArticulosList" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
                     <!-- Artículos dinámicos -->
                 </div>
                 
@@ -1071,8 +1125,11 @@
                     Total: <span id="pedidoWebTotal" style="color: var(--primary-emerald);">$0.00</span>
                 </div>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <div class="modal-footer" id="pedidoWebModalFooter" style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>
+                <button class="btn btn-primary" id="btnGuardarCambiosPedidoWeb" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                </button>
             </div>
         </div>
     </div>

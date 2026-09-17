@@ -2321,7 +2321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // =========================================================
     // PEDIDOS WEB
-    // ==========================================
+    // =========================================================
     window.loadPedidosWebTable = async () => {
         const tbody = document.getElementById('pedidosWebTableBody');
         if (!tbody) return;
@@ -2337,21 +2337,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.currentPedidosWeb = pedidos;
 
         tbody.innerHTML = pedidos.map(p => {
+            const st = (p.estado || 'pendiente').toLowerCase();
             let badgeClass = 'badge-warning'; // pendiente
-            if (p.estado === 'confirmado') badgeClass = 'badge-success';
-            if (p.estado === 'anulado') badgeClass = 'badge-danger';
+            if (st.includes('confirmado') || st.includes('aprobado') || st.includes('completado')) badgeClass = 'badge-success';
+            if (st.includes('anulado') || st.includes('denegado') || st.includes('cancelado')) badgeClass = 'badge-danger';
+            if (st.includes('enviado')) badgeClass = 'badge-info';
 
             const fecha = new Date(p.fecha).toLocaleString();
+            const trackingBadge = p.numero_rastreo 
+                ? `<div style="font-size:11px; color:var(--primary-emerald); margin-top:3px;"><i class="fa-solid fa-truck-fast"></i> Guía: ${p.numero_rastreo}</div>` 
+                : '';
 
             return `
                 <tr>
                     <td>${fecha}</td>
-                    <td style="font-weight:600;">${p.cliente_nombre}</td>
+                    <td style="font-weight:600;">
+                        ${p.cliente_nombre}
+                        ${trackingBadge}
+                    </td>
                     <td style="color:var(--primary-emerald); font-weight:700;">$${p.total.toFixed(2)}</td>
                     <td><span class="badge ${badgeClass}">${p.estado.toUpperCase()}</span></td>
                     <td>
                         <button class="btn btn-secondary btn-small" onclick="verDetallesPedidoWeb(${p.id})">
-                            <i class="fa-solid fa-eye"></i> Detalles
+                            <i class="fa-solid fa-eye"></i> Gestionar
                         </button>
                     </td>
                 </tr>
@@ -2365,17 +2373,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pedido = window.currentPedidosWeb.find(p => p.id === id);
         if (!pedido) return;
 
-        document.getElementById('pedidoWebCliente').textContent = pedido.cliente_nombre;
+        window.activePedidoWebId = id;
+
+        // Cliente y Contacto
+        document.getElementById('pedidoWebCliente').textContent = pedido.cliente_nombre || 'Cliente';
         document.getElementById('pedidoWebFecha').textContent = new Date(pedido.fecha).toLocaleString();
-        document.getElementById('pedidoWebTotal').textContent = `$${pedido.total.toFixed(2)}`;
+        
+        const contactoInfo = [pedido.email, pedido.telefono].filter(Boolean).join(' | ') || 'No proporcionado';
+        document.getElementById('pedidoWebContacto').textContent = contactoInfo;
 
+        // Dirección de Envío
+        const dirEl = document.getElementById('pedidoWebDireccion');
+        if (dirEl) {
+            let dirTexto = pedido.direccion_envio || pedido.direccion || '';
+            if (!dirTexto && pedido.cp) dirTexto = `C.P. ${pedido.cp}`;
+            dirEl.textContent = dirTexto || 'Sin domicilio registrado en este pedido.';
+        }
+
+        // Estado y Badge
         const badge = document.getElementById('pedidoWebEstado');
-        badge.textContent = pedido.estado.toUpperCase();
+        const st = (pedido.estado || 'pendiente').toLowerCase();
+        badge.textContent = st.toUpperCase();
         badge.className = 'badge';
-        if (pedido.estado === 'pendiente') badge.classList.add('badge-warning');
-        if (pedido.estado === 'confirmado') badge.classList.add('badge-success');
-        if (pedido.estado === 'anulado') badge.classList.add('badge-danger');
+        if (st.includes('confirmado') || st.includes('aprobado') || st.includes('completado')) badge.classList.add('badge-success');
+        else if (st.includes('anulado') || st.includes('denegado') || st.includes('cancelado')) badge.classList.add('badge-danger');
+        else if (st.includes('enviado')) badge.classList.add('badge-info');
+        else badge.classList.add('badge-warning');
 
+        // Formulario de Rastreo, Paquetería y Estado
+        const trackingInput = document.getElementById('pedidoWebTrackingInput');
+        if (trackingInput) trackingInput.value = pedido.numero_rastreo || '';
+
+        const paqueteriaSelect = document.getElementById('pedidoWebPaqueteriaSelect');
+        if (paqueteriaSelect) paqueteriaSelect.value = pedido.paqueteria || 'Correos de México';
+
+        const estadoSelect = document.getElementById('pedidoWebEstadoSelect');
+        if (estadoSelect) estadoSelect.value = pedido.estado || 'pendiente';
+
+        // Lista de Artículos
         const list = document.getElementById('pedidoWebArticulosList');
         if (pedido.detalles_pedido && pedido.detalles_pedido.length > 0) {
             list.innerHTML = pedido.detalles_pedido.map(item => {
@@ -2383,35 +2418,48 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ? `<img src="${item.imagen_url}" alt="${item.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                     : `<div style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-image" style="color: var(--text-muted);"></i></div>`;
 
+                const priceNum = Number(item.precio || item.precioUnitario || item.precio_unitario || item.precioVenta || 0);
+                const itemTotal = (item.cantidad || 1) * priceNum;
+
+                const variantText = item.variante || [item.color, item.talla ? `Talla: ${item.talla}` : ''].filter(Boolean).join(' - ') || '';
+
                 return `
                 <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:6px;">
                     <div style="display:flex; align-items: center;">
                         ${imgHtml}
                         <div>
                             <div style="font-weight:600;">${item.cantidad}x ${item.nombre}</div>
-                            ${item.variante ? `<div style="font-size:12px; color:var(--text-muted);">${item.variante}</div>` : ''}
+                            ${variantText ? `<div style="font-size:12px; color:var(--text-muted);">${variantText}</div>` : ''}
                         </div>
                     </div>
-                    <div style="color:var(--primary-emerald); font-weight: 600;">$${(item.cantidad * item.precio).toFixed(2)}</div>
+                    <div style="color:var(--primary-emerald); font-weight: 600;">$${itemTotal.toFixed(2)}</div>
                 </div>
             `}).join('');
         } else {
             list.innerHTML = '<div style="color:var(--text-muted);">Sin detalles.</div>';
         }
 
-        const footer = document.querySelector('#detallesPedidoWebModal .modal-footer');
-        if (pedido.estado === 'pendiente') {
+        document.getElementById('pedidoWebTotal').textContent = `$${pedido.total.toFixed(2)}`;
+
+        // Footer buttons
+        const footer = document.getElementById('pedidoWebModalFooter');
+        if (footer) {
+            let extraButtons = '';
+            if (st === 'pendiente' || st === 'pendiente_pago') {
+                extraButtons = `
+                    <button class="btn btn-primary" onclick="confirmarPedidoWeb(${pedido.id})" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
+                        <i class="fa-solid fa-check"></i> Descontar Stock y Procesar Venta
+                    </button>
+                `;
+            }
+
             footer.innerHTML = `
                 <button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>
-                <button class="btn btn-primary" onclick="confirmarPedidoWeb(${pedido.id})" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
-                    <i class="fa-solid fa-check"></i> Confirmar y Descontar Stock
-                </button>
-                <button class="btn btn-secondary" onclick="anularPedidoWeb(${pedido.id})" style="color: var(--danger); border-color: var(--danger-glass);">
-                    <i class="fa-solid fa-ban"></i> Anular Pedido
+                ${extraButtons}
+                <button class="btn btn-primary" onclick="guardarCambiosPedidoWeb(${pedido.id})" style="background-color: #c9a265; border-color: #c9a265; color: #000; font-weight: 700;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios de Envío/Estado
                 </button>
             `;
-        } else {
-            footer.innerHTML = `<button class="btn btn-secondary" onclick="closePedidoWebModal()">Cerrar</button>`;
         }
 
         document.getElementById('detallesPedidoWebModal').classList.add('active');
@@ -2421,23 +2469,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('detallesPedidoWebModal').classList.remove('active');
     };
 
+    window.guardarCambiosPedidoWeb = async (id) => {
+        const targetId = id || window.activePedidoWebId;
+        if (!targetId) return;
+
+        const paqueteria = document.getElementById('pedidoWebPaqueteriaSelect')?.value || 'Correos de México';
+        const numero_rastreo = document.getElementById('pedidoWebTrackingInput')?.value.trim() || null;
+        const estado = document.getElementById('pedidoWebEstadoSelect')?.value || 'pendiente';
+
+        try {
+            const updatePayload = { paqueteria, numero_rastreo, estado };
+            const res = await window.electronAPI.actualizarPedidoWeb(targetId, updatePayload);
+
+            if (res.success) {
+                showToast('Éxito', 'Pedido actualizado correctamente.', 'success');
+                closePedidoWebModal();
+                loadPedidosWebTable();
+            } else {
+                showToast('Error', res.error || 'No se pudo actualizar el pedido.', 'error');
+            }
+        } catch (err) {
+            showToast('Error', err.message, 'error');
+        }
+    };
+
     window.confirmarPedidoWeb = async (id) => {
-        if (!confirm('¿Deseas confirmar el pedido? Esto registrará la venta y descontará el stock.')) return;
+        if (!confirm('¿Deseas registrar esta venta en el POS y descontar stock?')) return;
 
         const pedido = window.currentPedidosWeb.find(p => p.id === id);
         if (!pedido) return;
 
-        const ventasArray = pedido.detalles_pedido.map(item => ({
-            producto_id: item.producto_id,
-            variante_id: item.variante_id,
+        const ventasArray = (pedido.detalles_pedido || []).map(item => ({
+            producto_id: item.producto_id || item.product_id,
+            variante_id: item.variante_id || item.variant_id,
             cantidad: item.cantidad,
-            precio_unitario: item.precio
+            precio_unitario: Number(item.precio || item.precioUnitario || item.precio_unitario || item.precioVenta || 0)
         }));
 
         try {
             const resVenta = await window.electronAPI.addVentaMultiple(ventasArray);
             if (resVenta.success) {
-                const resPedido = await window.electronAPI.actualizarEstadoPedidoWeb(id, 'confirmado');
+                const resPedido = await window.electronAPI.actualizarPedidoWeb(id, { estado: 'confirmado' });
                 if (resPedido.success) {
                     showToast('Confirmado', 'Pedido procesado y stock descontado.', 'success');
                     closePedidoWebModal();
@@ -2456,7 +2528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.anularPedidoWeb = async (id) => {
         if (!confirm('¿Deseas anular este pedido? El stock NO se descontará.')) return;
         try {
-            const res = await window.electronAPI.actualizarEstadoPedidoWeb(id, 'anulado');
+            const res = await window.electronAPI.actualizarPedidoWeb(id, { estado: 'anulado' });
             if (res.success) {
                 showToast('Anulado', 'El pedido ha sido anulado.', 'info');
                 closePedidoWebModal();

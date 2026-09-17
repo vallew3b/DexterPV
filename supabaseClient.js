@@ -692,6 +692,14 @@ try {
     } catch (err) { return { success: false, error: err.message }; }
   };
 
+  window.dexterDB.actualizarPedidoWeb = async (pedidoId, dataToUpdate) => {
+    try {
+      const { error } = await getBusinessDB().from('pedidos_web').update(dataToUpdate).eq('id', pedidoId);
+      if (error) throw error;
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  };
+
   // Alias para app.js
   window.electronAPI = window.dexterDB;
 
