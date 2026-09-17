@@ -2319,24 +2319,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // =========================================================
-    // PEDIDOS WEB
-    // =========================================================
-    window.loadPedidosWebTable = async () => {
+    // Helper para obtener fecha local YYYY-MM-DD
+    function toLocalDateISOString(dateVal) {
+        if (!dateVal) return '';
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return '';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    window.renderFilteredPedidosWeb = () => {
         const tbody = document.getElementById('pedidosWebTableBody');
+        const counterEl = document.getElementById('pedidosWebCounter');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando pedidos...</td></tr>';
 
-        const pedidos = await window.electronAPI.getPedidosWeb();
-
-        if (!pedidos || pedidos.length === 0) {
+        const pedidos = window.currentPedidosWeb || [];
+        if (pedidos.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No hay pedidos registrados en la tienda en línea.</td></tr>';
+            if (counterEl) counterEl.textContent = 'Sin pedidos registrados';
             return;
         }
 
-        window.currentPedidosWeb = pedidos;
+        const searchQuery = (document.getElementById('filterPedidoWebSearch')?.value || '').trim().toLowerCase();
+        const selectedFecha = document.getElementById('filterPedidoWebFecha')?.value || '';
+        const selectedEstado = (document.getElementById('filterPedidoWebEstado')?.value || '').toLowerCase();
 
-        tbody.innerHTML = pedidos.map(p => {
+        const filtered = pedidos.filter(p => {
+            // Filtro por Fecha
+            if (selectedFecha) {
+                const orderFechaISO = toLocalDateISOString(p.fecha || p.created_at);
+                if (orderFechaISO !== selectedFecha) return false;
+            }
+
+            // Filtro por Estado
+            if (selectedEstado) {
+                const st = (p.estado || '').toLowerCase();
+                if (!st.includes(selectedEstado)) return false;
+            }
+
+            // Filtro por Búsqueda (nombre, número de guía, id, email, dirección)
+            if (searchQuery) {
+                const matchId = String(p.id || '').includes(searchQuery);
+                const matchCliente = (p.cliente_nombre || '').toLowerCase().includes(searchQuery);
+                const matchGuia = (p.numero_rastreo || '').toLowerCase().includes(searchQuery);
+                const matchEmail = (p.email || '').toLowerCase().includes(searchQuery);
+                const matchDir = (p.direccion_envio || '').toLowerCase().includes(searchQuery);
+                if (!matchId && !matchCliente && !matchGuia && !matchEmail && !matchDir) return false;
+            }
+
+            return true;
+        });
+
+        const totalMonto = filtered.reduce((sum, p) => sum + Number(p.total || 0), 0);
+        if (counterEl) {
+            let infoFiltro = [];
+            if (selectedFecha) infoFiltro.push(`Fecha: ${selectedFecha}`);
+            if (selectedEstado) infoFiltro.push(`Estado: ${selectedEstado.toUpperCase()}`);
+            if (searchQuery) infoFiltro.push(`Búsqueda: "${searchQuery}"`);
+
+            const filtroStr = infoFiltro.length > 0 ? ` (${infoFiltro.join(', ')})` : '';
+            counterEl.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${pedidos.length}</strong> pedidos${filtroStr} — Total: <strong style="color:var(--primary-emerald);">$${totalMonto.toFixed(2)} MXN</strong>`;
+        }
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:30px;">No se encontraron pedidos con los filtros aplicados.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(p => {
             const st = (p.estado || 'pendiente').toLowerCase();
             let badgeClass = 'badge-warning'; // pendiente
             if (st.includes('confirmado') || st.includes('aprobado') || st.includes('completado')) badgeClass = 'badge-success';
@@ -2350,13 +2402,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             return `
                 <tr>
-                    <td>${fecha}</td>
+                    <td>
+                        <strong style="color:var(--text-muted); font-size:12px;">#${p.id}</strong><br>
+                        <span style="font-size:13px;">${fecha}</span>
+                    </td>
                     <td style="font-weight:600;">
                         ${p.cliente_nombre}
                         ${trackingBadge}
                     </td>
-                    <td style="color:var(--primary-emerald); font-weight:700;">$${p.total.toFixed(2)}</td>
-                    <td><span class="badge ${badgeClass}">${p.estado.toUpperCase()}</span></td>
+                    <td style="color:var(--primary-emerald); font-weight:700;">$${Number(p.total || 0).toFixed(2)}</td>
+                    <td><span class="badge ${badgeClass}">${(p.estado || 'pendiente').toUpperCase()}</span></td>
                     <td>
                         <button class="btn btn-secondary btn-small" onclick="verDetallesPedidoWeb(${p.id})">
                             <i class="fa-solid fa-eye"></i> Gestionar
@@ -2366,6 +2421,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }).join('');
     };
+
+    window.loadPedidosWebTable = async () => {
+        const tbody = document.getElementById('pedidosWebTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando pedidos...</td></tr>';
+
+        const pedidos = await window.electronAPI.getPedidosWeb();
+        window.currentPedidosWeb = pedidos || [];
+
+        renderFilteredPedidosWeb();
+    };
+
+    // Event Listeners para filtros
+    document.getElementById('filterPedidoWebSearch')?.addEventListener('input', renderFilteredPedidosWeb);
+    document.getElementById('filterPedidoWebFecha')?.addEventListener('change', renderFilteredPedidosWeb);
+    document.getElementById('filterPedidoWebEstado')?.addEventListener('change', renderFilteredPedidosWeb);
+
+    document.getElementById('btnFilterHoyPedidosWeb')?.addEventListener('click', () => {
+        const fechaInput = document.getElementById('filterPedidoWebFecha');
+        if (fechaInput) {
+            fechaInput.value = toLocalDateISOString(new Date());
+            renderFilteredPedidosWeb();
+        }
+    });
+
+    document.getElementById('btnFilterTodosPedidosWeb')?.addEventListener('click', () => {
+        const searchInput = document.getElementById('filterPedidoWebSearch');
+        const fechaInput = document.getElementById('filterPedidoWebFecha');
+        const estadoSelect = document.getElementById('filterPedidoWebEstado');
+        if (searchInput) searchInput.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (estadoSelect) estadoSelect.value = '';
+        renderFilteredPedidosWeb();
+    });
 
     document.getElementById('btnRefreshPedidosWeb')?.addEventListener('click', loadPedidosWebTable);
 
