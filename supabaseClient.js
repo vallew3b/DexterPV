@@ -453,9 +453,7 @@ try {
         .from('comercios')
         .select(`
           *,
-          usuarios(count),
-          productos(count),
-          ventas(count)
+          usuarios(count)
         `)
         .order('id', { ascending: true });
         
