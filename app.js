@@ -2467,6 +2467,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             showToast('Error', err.message, 'error');
         }
+    window.manualKeepAliveSupabase = async function() {
+        const btn = document.getElementById('btnKeepAliveSupabase');
+        if (!btn) return;
+        const oldText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pingueando BDs...';
+        btn.disabled = true;
+
+        try {
+            const res = await window.electronAPI.pingAllTenants();
+            if (res.success) {
+                const onlineCount = res.results.filter(r => r.status === 'online').length;
+                const totalCount = res.results.length;
+                alert(`⚡ ¡Mantenedor Supabase completado!\n\n${onlineCount} de ${totalCount} bases de datos independientes respondieron correctamente y se mantendrán activas en Supabase (evitando su congelamiento por inactividad).`);
+            } else {
+                alert('Error al pinguear bases de datos: ' + (res.error || 'Desconocido'));
+            }
+        } catch(e) {
+            alert('Error: ' + e.message);
+        } finally {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+        }
     };
 
 });
+

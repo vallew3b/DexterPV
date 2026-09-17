@@ -860,9 +860,14 @@
                         
                         <!-- Listado de comercios e inquilinos -->
                         <div class="glass-panel" style="padding:24px;">
-                            <h3 style="margin-bottom:20px; font-weight:700; color: var(--text-primary);">
-                                <i class="fa-solid fa-list-check"></i> Clientes Multi-tenant Registrados
-                            </h3>
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                                <h3 style="margin:0; font-weight:700; color: var(--text-primary);">
+                                    <i class="fa-solid fa-list-check"></i> Clientes Multi-tenant Registrados
+                                </h3>
+                                <button class="btn btn-secondary btn-small" id="btnKeepAliveSupabase" onclick="manualKeepAliveSupabase()" title="Mantener activas todas las bases de datos en Supabase para prevenir pausa por inactividad" style="border-color:var(--warning); color:var(--text-primary);">
+                                    <i class="fa-solid fa-bolt" style="color:var(--warning);"></i> Prevenir Pausa Supabase (Keep-Alive)
+                                </button>
+                            </div>
                             <div class="table-container">
                                 <table class="premium-table">
                                     <thead>
@@ -1296,7 +1301,7 @@
     <!-- DB Layer and Application Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabaseClient.js?v=4"></script>
-    <script src="app.js?v=4"></script>
+    <script src="supabaseClient.js?v=5"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

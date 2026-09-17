@@ -490,10 +490,49 @@ try {
           Promise.all(actualizaciones).catch(err => console.error("Error auto-suspendiendo", err));
       }
 
+      // Auto Keep-Alive: Pinguea todas las BDs en background para evitar pausa de Supabase
+      setTimeout(() => {
+        if (window.dexterDB.pingAllTenants) {
+          window.dexterDB.pingAllTenants().then(r => console.log("[Supabase Keep-Alive]", r)).catch(e => console.error(e));
+        }
+      }, 1000);
+
       return comerciosMap;
     } catch (err) {
       console.error(err);
       return [];
+    }
+  };
+
+  window.dexterDB.pingAllTenants = async () => {
+    try {
+      const { data: comercios, error } = await centralSupabase
+        .from('comercios')
+        .select('id, nombre, supabase_url, supabase_key');
+
+      if (error || !comercios) return { success: false, results: [] };
+
+      const results = await Promise.all(comercios.map(async (c) => {
+        if (!c.supabase_url || !c.supabase_key) {
+          return { id: c.id, nombre: c.nombre, status: 'sin_bd', message: 'Sin BD dedicada' };
+        }
+        try {
+          const cleanUrl = cleanSupabaseUrl(c.supabase_url);
+          const res = await fetch(`${cleanUrl}/rest/v1/comercios?select=id&limit=1`, {
+            headers: {
+              'apikey': c.supabase_key,
+              'Authorization': `Bearer ${c.supabase_key}`
+            }
+          });
+          return { id: c.id, nombre: c.nombre, status: res.ok ? 'online' : 'error', code: res.status };
+        } catch (e) {
+          return { id: c.id, nombre: c.nombre, status: 'failed', error: e.message };
+        }
+      }));
+
+      return { success: true, results };
+    } catch (err) {
+      return { success: false, error: err.message, results: [] };
     }
   };
 
