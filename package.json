@@ -21,8 +21,7 @@
     "appId": "com.dexterpv.admin",
     "productName": "DexterPV SuperAdmin",
     "win": {
-      "target": "nsis",
-      "icon": "icon.ico"
+      "target": "nsis"
     }
   }
 }

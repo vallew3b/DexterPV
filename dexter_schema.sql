@@ -132,3 +132,21 @@ CREATE TABLE public.pedidos_web (
 
 -- Quitar el candado de seguridad (RLS) para que la tienda (usuario anónimo) pueda guardar pedidos libremente
 ALTER TABLE public.pedidos_web DISABLE ROW LEVEL SECURITY;
+
+-- 8. TABLA CLIENTES
+CREATE TABLE IF NOT EXISTS public.clientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    nombre_completo TEXT,
+    telefono TEXT,
+    email TEXT,
+    comercio_id INTEGER REFERENCES public.comercios(id) ON DELETE CASCADE,
+    direccion TEXT,
+    ciudad TEXT,
+    cp TEXT,
+    referencias TEXT
+);
+
+-- Quitar el candado de seguridad (RLS) para la tabla clientes
+ALTER TABLE public.clientes DISABLE ROW LEVEL SECURITY;
+
