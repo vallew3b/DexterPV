@@ -2467,6 +2467,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             showToast('Error', err.message, 'error');
         }
+    };
+
     window.manualKeepAliveSupabase = async function() {
         const btn = document.getElementById('btnKeepAliveSupabase');
         if (!btn) return;
