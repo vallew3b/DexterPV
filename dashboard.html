@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- html2pdf para reportes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        #filterPedidoWebSearch::placeholder {
+            color: #6e5e54;
+            opacity: 0.85;
+        }
+        #filterPedidoWebSearch:focus, 
+        #filterPedidoWebFecha:focus, 
+        #filterPedidoWebEstado:focus,
+        #pedidoWebTrackingInput:focus,
+        #pedidoWebPaqueteriaSelect:focus,
+        #pedidoWebEstadoSelect:focus {
+            border-color: #b85c40 !important;
+            box-shadow: 0 0 0 3.5px rgba(184, 92, 64, 0.22) !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -303,30 +318,30 @@
                             </div>
                         </div>
 
-                        <!-- Panel de Filtros: Fecha (Calendario), Búsqueda y Estado -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 12px; border: 1px solid var(--border-dark);">
+                        <!-- Panel de Filtros: Fecha (Calendario), Búsqueda y Estado (Negro, Blanco y Café) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; background: #ffffff; padding: 18px; border-radius: 14px; border: 2px solid #5a3d28; box-shadow: 0 4px 20px rgba(45, 36, 30, 0.06);">
                             <!-- Búsqueda por Texto -->
                             <div>
-                                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">
-                                    <i class="fa-solid fa-magnifying-glass"></i> Buscar por Cliente / Guía:
+                                <label style="font-size: 12.5px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">
+                                    <i class="fa-solid fa-magnifying-glass" style="color: #b85c40;"></i> Buscar por Cliente / Guía:
                                 </label>
-                                <input type="text" id="filterPedidoWebSearch" class="form-control" placeholder="Nombre, guía, #ID..." style="width: 100%; font-size: 13px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                                <input type="text" id="filterPedidoWebSearch" placeholder="Nombre, guía, #ID..." style="width: 100%; font-size: 13.5px; font-weight: 500; padding: 9px 12px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                             </div>
 
                             <!-- Calendario de Fecha -->
                             <div>
-                                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">
-                                    <i class="fa-solid fa-calendar-days"></i> Filtrar por Fecha:
+                                <label style="font-size: 12.5px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">
+                                    <i class="fa-solid fa-calendar-days" style="color: #b85c40;"></i> Filtrar por Fecha:
                                 </label>
-                                <input type="date" id="filterPedidoWebFecha" class="form-control" style="width: 100%; font-size: 13px; padding: 6px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                                <input type="date" id="filterPedidoWebFecha" style="width: 100%; font-size: 13.5px; font-weight: 500; padding: 8px 12px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                             </div>
 
                             <!-- Selector de Estado -->
                             <div>
-                                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">
-                                    <i class="fa-solid fa-filter"></i> Filtrar por Estado:
+                                <label style="font-size: 12.5px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">
+                                    <i class="fa-solid fa-filter" style="color: #b85c40;"></i> Filtrar por Estado:
                                 </label>
-                                <select id="filterPedidoWebEstado" class="form-control" style="width: 100%; font-size: 13px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                                <select id="filterPedidoWebEstado" style="width: 100%; font-size: 13.5px; font-weight: 600; padding: 9px 12px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                                     <option value="">Todos los Estados</option>
                                     <option value="pendiente">Pendientes</option>
                                     <option value="confirmado">Aprobados / Confirmados</option>
@@ -337,10 +352,10 @@
 
                             <!-- Botones Rápidos de Fecha -->
                             <div style="display: flex; align-items: flex-end; gap: 8px;">
-                                <button class="btn btn-secondary btn-small" id="btnFilterHoyPedidosWeb" style="padding: 8px 12px; font-size: 12px; background: rgba(201, 162, 101, 0.15); color: #c9a265; border-color: rgba(201, 162, 101, 0.4);">
+                                <button class="btn btn-small" id="btnFilterHoyPedidosWeb" style="padding: 10px 16px; font-size: 13px; font-weight: 700; background: #b85c40; color: #ffffff; border: 1.5px solid #b85c40; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                     <i class="fa-solid fa-calendar-day"></i> Hoy
                                 </button>
-                                <button class="btn btn-secondary btn-small" id="btnFilterTodosPedidosWeb" style="padding: 8px 12px; font-size: 12px;">
+                                <button class="btn btn-small" id="btnFilterTodosPedidosWeb" style="padding: 10px 16px; font-size: 13px; font-weight: 700; background: #2d241e; color: #ffffff; border: 1.5px solid #2d241e; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                     Ver Todos
                                 </button>
                             </div>
@@ -1123,22 +1138,22 @@
 
                 <!-- Dirección de Envío -->
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: var(--primary-emerald);"><i class="fa-solid fa-location-dot"></i> Datos / Domicilio de Envío:</strong>
-                    <div id="pedidoWebDireccion" style="background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; font-size: 13.5px; border: 1px solid var(--border-dark); margin-top: 6px; white-space: pre-wrap; color: var(--text-primary);">
+                    <strong style="color: #b85c40;"><i class="fa-solid fa-location-dot"></i> Datos / Domicilio de Envío:</strong>
+                    <div id="pedidoWebDireccion" style="background: #ffffff; padding: 12px 14px; border-radius: 8px; font-size: 13.5px; border: 1.5px solid #2d241e; margin-top: 6px; white-space: pre-wrap; color: #1e140e; font-weight: 500;">
                         Sin datos de envío registrados.
                     </div>
                 </div>
 
                 <!-- Sección: Asignar Rastreo y Actualizar Estado -->
-                <div style="background: rgba(201, 162, 101, 0.06); border: 1px solid rgba(201, 162, 101, 0.25); border-radius: 10px; padding: 15px; margin-bottom: 18px;">
-                    <h4 style="margin-bottom: 12px; color: #c9a265; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-box-archive"></i> Asignar Guía y Estado del Envío
+                <div style="background: #ffffff; border: 2px solid #5a3d28; border-radius: 12px; padding: 16px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(45, 36, 30, 0.05);">
+                    <h4 style="margin-bottom: 14px; color: #5a3d28; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-box-archive" style="color: #b85c40;"></i> Asignar Guía y Estado del Envío
                     </h4>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
-                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Empresa / Paquetería:</label>
-                            <select id="pedidoWebPaqueteriaSelect" class="form-control" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                            <label style="font-size: 12px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">Empresa / Paquetería:</label>
+                            <select id="pedidoWebPaqueteriaSelect" style="width: 100%; font-size: 13.5px; font-weight: 600; padding: 9px 10px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                                 <option value="Correos de México">Correos de México</option>
                                 <option value="Estafeta">Estafeta</option>
                                 <option value="DHL">DHL</option>
@@ -1149,14 +1164,14 @@
                             </select>
                         </div>
                         <div>
-                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Número de Rastreo / Guía:</label>
-                            <input type="text" id="pedidoWebTrackingInput" class="form-control" placeholder="Ej. 9988776655" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                            <label style="font-size: 12px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">Número de Rastreo / Guía:</label>
+                            <input type="text" id="pedidoWebTrackingInput" placeholder="Ej. 9988776655" style="width: 100%; font-size: 13.5px; font-weight: 500; padding: 9px 10px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                         </div>
                     </div>
 
                     <div>
-                        <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Actualizar Estado en el Sitio Web:</label>
-                        <select id="pedidoWebEstadoSelect" class="form-control" style="width: 100%; font-size: 13.5px; padding: 7px 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-dark); color: #fff; border-radius: 6px;">
+                        <label style="font-size: 12px; color: #2d241e; font-weight: 700; display: block; margin-bottom: 5px;">Actualizar Estado en el Sitio Web:</label>
+                        <select id="pedidoWebEstadoSelect" style="width: 100%; font-size: 13.5px; font-weight: 600; padding: 9px 10px; background: #ffffff; border: 1.5px solid #2d241e; color: #1e140e; border-radius: 8px; outline: none;">
                             <option value="pendiente">Pendiente</option>
                             <option value="pendiente_pago">Pendiente de Pago</option>
                             <option value="aprobado">Aprobado / Confirmado</option>
