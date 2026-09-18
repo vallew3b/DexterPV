@@ -2479,6 +2479,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             dirEl.textContent = dirTexto || 'Sin domicilio registrado en este pedido.';
         }
 
+        // Información de Pago, Folio, Fechas y Montos
+        const metodoPago = pedido.metodo_pago || 'WhatsApp / Directo';
+        const folioPago = pedido.folio_pago || pedido.referencia_pago || pedido.transaction_id || `FOL-${pedido.id}`;
+        const fechaPagoStr = pedido.fecha_pago 
+            ? new Date(pedido.fecha_pago).toLocaleString() 
+            : (pedido.fecha ? new Date(pedido.fecha).toLocaleString() : 'No registrada');
+
+        const metodoPagoBadge = document.getElementById('pedidoWebMetodoPagoBadge');
+        if (metodoPagoBadge) metodoPagoBadge.textContent = metodoPago.toUpperCase();
+
+        const folioEl = document.getElementById('pedidoWebFolioPago');
+        if (folioEl) folioEl.textContent = folioPago;
+
+        const fechaPagoEl = document.getElementById('pedidoWebFechaPago');
+        if (fechaPagoEl) fechaPagoEl.textContent = fechaPagoStr;
+
+        const tipoEnvioStr = pedido.metodo_envio || pedido.paqueteria || 'Envío por Acordar';
+        const tipoEnvioEl = document.getElementById('pedidoWebTipoEnvioText');
+        if (tipoEnvioEl) tipoEnvioEl.textContent = tipoEnvioStr;
+
+        // Cálculo de Subtotal y Envío
+        const subtotalNum = Number(
+            pedido.subtotal_articulos || 
+            pedido.subtotal || 
+            (pedido.detalles_pedido ? pedido.detalles_pedido.reduce((acc, item) => acc + ((item.cantidad || 1) * Number(item.precio || item.precioUnitario || item.precio_unitario || 0)), 0) : (pedido.total || 0))
+        );
+        const subtotalEl = document.getElementById('pedidoWebSubtotalText');
+        if (subtotalEl) subtotalEl.textContent = `$${subtotalNum.toFixed(2)}`;
+
+        const montoEnvioNum = Number(pedido.monto_envio || pedido.costo_envio || 0);
+        const montoEnvioEl = document.getElementById('pedidoWebMontoEnvioText');
+        if (montoEnvioEl) montoEnvioEl.textContent = `$${montoEnvioNum.toFixed(2)}`;
+
         // Estado y Badge
         const badge = document.getElementById('pedidoWebEstado');
         const st = (pedido.estado || 'pendiente').toLowerCase();

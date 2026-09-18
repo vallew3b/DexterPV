@@ -1126,13 +1126,30 @@
                         <strong>Cliente:</strong> <span id="pedidoWebCliente" style="color: var(--text-primary); font-weight: 600;"></span>
                     </div>
                     <div>
-                        <strong>Fecha:</strong> <span id="pedidoWebFecha"></span>
+                        <strong>Fecha de Registro:</strong> <span id="pedidoWebFecha"></span>
                     </div>
                     <div>
                         <strong>Contacto:</strong> <span id="pedidoWebContacto"></span>
                     </div>
                     <div>
                         <strong>Estado Actual:</strong> <span id="pedidoWebEstado" class="badge"></span>
+                    </div>
+                </div>
+
+                <!-- Información de Pago y Desglose Financiero -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-dark); border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 13px;">
+                    <div style="font-weight: 700; color: #c9a265; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                        <span><i class="fa-solid fa-receipt"></i> Detalles del Pago & Comprobante:</span>
+                        <span id="pedidoWebMetodoPagoBadge" class="badge" style="background: rgba(201,162,101,0.18); color: #c9a265; border: 1px solid rgba(201,162,101,0.4); font-size: 11px;"></span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                        <div><strong style="color:var(--text-muted);">Folio / Ref. Pago:</strong> <br><span id="pedidoWebFolioPago" style="font-family: monospace; font-weight: 700; color: #ffffff; font-size: 13.5px;">-</span></div>
+                        <div><strong style="color:var(--text-muted);">Fecha / Día de Pago:</strong> <br><span id="pedidoWebFechaPago" style="color: #ffffff; font-weight: 500;">-</span></div>
+                    </div>
+                    <div style="border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 12px;">
+                        <div><span style="color: var(--text-muted);">Tipo Envío Elegido:</span><br><strong id="pedidoWebTipoEnvioText" style="color: #ffffff;">-</strong></div>
+                        <div><span style="color: var(--text-muted);">Subtotal Prendas:</span><br><strong id="pedidoWebSubtotalText" style="color: #ffffff;">$0.00</strong></div>
+                        <div><span style="color: var(--text-muted);">Costo Envío:</span><br><strong id="pedidoWebMontoEnvioText" style="color: #c9a265;">$0.00</strong></div>
                     </div>
                 </div>
 

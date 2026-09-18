@@ -123,12 +123,38 @@ ON CONFLICT (usuario) DO NOTHING;
 CREATE TABLE public.pedidos_web (
     id SERIAL PRIMARY KEY,
     cliente_nombre VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    telefono VARCHAR(50),
+    direccion_envio TEXT,
+    cp VARCHAR(20),
     detalles_pedido JSONB NOT NULL,
+    subtotal_articulos DECIMAL(12, 2) DEFAULT 0.00,
+    monto_envio DECIMAL(12, 2) DEFAULT 0.00,
     total DECIMAL(12, 2) NOT NULL,
-    estado VARCHAR(50) NOT NULL DEFAULT 'pendiente', -- pendiente, confirmado, anulado
+    metodo_envio VARCHAR(150),
+    paqueteria VARCHAR(100),
+    numero_rastreo VARCHAR(100),
+    metodo_pago VARCHAR(100) DEFAULT 'WhatsApp / Por Acordar',
+    folio_pago VARCHAR(100),
+    fecha_pago TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    estado VARCHAR(50) NOT NULL DEFAULT 'pendiente', -- pendiente, aprobado, enviado, anulado
     fecha TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     comercio_id INTEGER REFERENCES public.comercios(id) ON DELETE CASCADE
 );
+
+-- MIGRACIÓN / ACTUALIZACIÓN SI LA TABLA YA EXISTE:
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS telefono VARCHAR(50);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS direccion_envio TEXT;
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS cp VARCHAR(20);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS subtotal_articulos DECIMAL(12, 2) DEFAULT 0.00;
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS monto_envio DECIMAL(12, 2) DEFAULT 0.00;
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS metodo_envio VARCHAR(150);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS paqueteria VARCHAR(100);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS numero_rastreo VARCHAR(100);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS metodo_pago VARCHAR(100) DEFAULT 'WhatsApp / Por Acordar';
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS folio_pago VARCHAR(100);
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS fecha_pago TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Quitar el candado de seguridad (RLS) para que la tienda (usuario anónimo) pueda guardar pedidos libremente
 ALTER TABLE public.pedidos_web DISABLE ROW LEVEL SECURITY;
