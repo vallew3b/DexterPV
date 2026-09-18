@@ -408,9 +408,13 @@ try {
         // Ventas Totales
         const sumaVentas = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha).startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
         
-        // Ventas Web
+        // Ventas Web (Únicamente pedidos aprobados, confirmados, enviados o completados)
         const sumaWeb = (pedidosWeb || [])
-          .filter(p => p.fecha && window.dexterDB.getLocalStr(p.fecha).startsWith(monthPrefix) && p.estado !== 'anulado')
+          .filter(p => {
+            if (!p.fecha || !window.dexterDB.getLocalStr(p.fecha).startsWith(monthPrefix)) return false;
+            const st = (p.estado || '').toLowerCase();
+            return st.includes('aprobado') || st.includes('confirmado') || st.includes('enviado') || st.includes('completado');
+          })
           .reduce((sum, p) => sum + (p.total || 0), 0);
 
         // Gastos
