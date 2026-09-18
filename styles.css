@@ -610,6 +610,53 @@ body {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
+/* Pestañitas (Tabs) de Gráfica en Dashboard */
+.dashboard-chart-tabs {
+    display: inline-flex;
+    background: rgba(54, 40, 32, 0.05);
+    border: 1px solid var(--border-dark);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.chart-tab-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-smooth);
+}
+
+.chart-tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.chart-tab-btn.active {
+    background: var(--primary-emerald);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(184, 92, 64, 0.25);
+}
+
+.chart-tab-btn[data-tab="ventasWeb"].active {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.chart-tab-btn[data-tab="gastos"].active {
+    background: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
 /* Catálogo de Productos (Cards) */
 .productos-grid {
     display: grid;

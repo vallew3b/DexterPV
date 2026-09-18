@@ -478,11 +478,122 @@ document.addEventListener('DOMContentLoaded', async () => {
     // INICIO: DASHBOARD
     // =========================================================
     let ventasChartInstance = null;
+    let currentDashboardStats = null;
+    let activeDashboardChartTab = 'ventasTotales';
+
+    function renderDashboardChart(tabName = activeDashboardChartTab) {
+        if (!currentDashboardStats || !currentDashboardStats.grafico) return;
+        activeDashboardChartTab = tabName;
+        const grafico = currentDashboardStats.grafico;
+
+        const canvas = document.getElementById('ventasChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        if (ventasChartInstance) ventasChartInstance.destroy();
+
+        let labelConfig = 'Ventas Totales ($)';
+        let chartData = grafico.ventasTotales || grafico.data || [];
+        let borderColor = '#b85c40';
+        let backgroundColor = 'rgba(184, 92, 64, 0.12)';
+        let titleText = 'Resumen de Ventas Totales (Últimos 6 Meses)';
+        let titleIcon = 'fa-chart-line';
+        let iconColor = 'var(--primary-emerald)';
+
+        if (tabName === 'ventasWeb') {
+            labelConfig = 'Ventas Web ($)';
+            chartData = grafico.ventasWeb || [];
+            borderColor = '#2563eb';
+            backgroundColor = 'rgba(37, 99, 235, 0.12)';
+            titleText = 'Resumen de Ventas Web (Últimos 6 Meses)';
+            titleIcon = 'fa-globe';
+            iconColor = '#2563eb';
+        } else if (tabName === 'gastos') {
+            labelConfig = 'Gastos Totales ($)';
+            chartData = grafico.gastos || [];
+            borderColor = '#ef4444';
+            backgroundColor = 'rgba(239, 68, 68, 0.12)';
+            titleText = 'Resumen de Gastos & OPEX (Últimos 6 Meses)';
+            titleIcon = 'fa-wallet';
+            iconColor = '#ef4444';
+        }
+
+        const titleTextEl = document.getElementById('chartTitleText');
+        const titleIconEl = document.getElementById('chartTitleIcon');
+        if (titleTextEl) titleTextEl.textContent = titleText;
+        if (titleIconEl) {
+            titleIconEl.className = `fa-solid ${titleIcon}`;
+            titleIconEl.style.color = iconColor;
+        }
+
+        // Actualizar pestañas activas
+        document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+            if (btn.getAttribute('data-tab') === tabName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        ventasChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: grafico.labels,
+                datasets: [{
+                    label: labelConfig,
+                    data: chartData,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: borderColor,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Event listener delegado para pestañas de la gráfica
+    document.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.chart-tab-btn');
+        if (tabBtn) {
+            const tabName = tabBtn.getAttribute('data-tab');
+            renderDashboardChart(tabName);
+        }
+    });
 
     async function loadDashboardData() {
         if (isSuperadmin || user.rol === 'vendedor') return;
         try {
             const stats = await window.electronAPI.getEstadisticas();
+            currentDashboardStats = stats;
+
             document.getElementById('statVentasHoy').textContent = `$${stats.ventasHoy.toFixed(2)}`;
             const statDev = document.getElementById('statDevolucionesHoy');
             if (statDev) statDev.textContent = `$${(stats.devolucionesHoy || 0).toFixed(2)}`;
@@ -490,45 +601,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('statInventarioTotal').textContent = `$${stats.inventarioTotal.toFixed(2)}`;
             document.getElementById('statTotalProductos').textContent = stats.totalProductos;
 
-            // Renderizar Gráfica
-            if (stats.grafico) {
-                const ctx = document.getElementById('ventasChart').getContext('2d');
-                if (ventasChartInstance) ventasChartInstance.destroy();
-
-                ventasChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: stats.grafico.labels,
-                        datasets: [{
-                            label: 'Ventas Totales ($)',
-                            data: stats.grafico.data,
-                            borderColor: '#b85c40',
-                            backgroundColor: 'rgba(184, 92, 64, 0.1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#b85c40',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function (value) {
-                                        return '$' + value;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+            // Renderizar Gráfica según la pestaña seleccionada
+            renderDashboardChart(activeDashboardChartTab);
 
             // Historial por defecto hoy
             const hoyStr = window.dexterDB.getLocalStr();

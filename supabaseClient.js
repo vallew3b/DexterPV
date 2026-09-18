@@ -379,6 +379,9 @@ try {
       const targetId = getActiveComercioId(comercioId);
       const productos = await window.dexterDB.getProductos(targetId);
       const ventas = await window.dexterDB.getVentas(null, null, targetId);
+      const gastos = await window.dexterDB.getGastos(null, null, targetId);
+      const pedidosWeb = await window.dexterDB.getPedidosWeb(targetId);
+
       const totalProductos = productos.length;
       const inventarioTotal = productos.reduce((sum, p) => sum + ((p.precioInventario || 0) * (p.stock || 0)), 0);
       let gananciasTotales = 0;
@@ -391,8 +394,8 @@ try {
       const ventasHoy = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha) === hoyStr).reduce((sum, v) => sum + (v.total || 0), 0);
       const devolucionesHoy = Math.abs(ventas.filter(v => window.dexterDB.getLocalStr(v.fecha) === hoyStr && (v.total < 0)).reduce((sum, v) => sum + (v.total || 0), 0));
       
-      // Gráfica últimos 6 meses
-      const grafico = { labels: [], data: [] };
+      // Gráfica últimos 6 meses (Totales, Web y Gastos)
+      const grafico = { labels: [], data: [], ventasTotales: [], ventasWeb: [], gastos: [] };
       for (let i = 5; i >= 0; i--) {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
@@ -401,10 +404,29 @@ try {
         const monthPrefix = `${year}-${month}`;
         
         const label = d.toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
-        const suma = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha).startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
         
+        // Ventas Totales
+        const sumaVentas = ventas.filter(v => window.dexterDB.getLocalStr(v.fecha).startsWith(monthPrefix)).reduce((sum, v) => sum + (v.total || 0), 0);
+        
+        // Ventas Web
+        const sumaWeb = (pedidosWeb || [])
+          .filter(p => p.fecha && window.dexterDB.getLocalStr(p.fecha).startsWith(monthPrefix) && p.estado !== 'anulado')
+          .reduce((sum, p) => sum + (p.total || 0), 0);
+
+        // Gastos
+        const sumaGastos = (gastos || [])
+          .filter(g => g.fecha && window.dexterDB.getLocalStr(g.fecha).startsWith(monthPrefix))
+          .reduce((sum, g) => sum + (g.monto || 0), 0);
+
         grafico.labels.push(label);
-        grafico.data.push(parseFloat(suma.toFixed(2)));
+        const vTot = parseFloat(sumaVentas.toFixed(2));
+        const vWeb = parseFloat(sumaWeb.toFixed(2));
+        const gTot = parseFloat(sumaGastos.toFixed(2));
+
+        grafico.data.push(vTot);
+        grafico.ventasTotales.push(vTot);
+        grafico.ventasWeb.push(vWeb);
+        grafico.gastos.push(gTot);
       }
 
       return {
@@ -415,7 +437,9 @@ try {
         gananciasTotales: parseFloat(gananciasTotales.toFixed(2)),
         grafico
       };
-    } catch (err) { return { totalProductos:0, inventarioTotal:0, gananciasTotales:0, ventasHoy:0, grafico: {labels:[], data:[]} }; }
+    } catch (err) { 
+      return { totalProductos:0, inventarioTotal:0, gananciasTotales:0, ventasHoy:0, devolucionesHoy:0, grafico: {labels:[], data:[], ventasTotales:[], ventasWeb:[], gastos:[]} }; 
+    }
   };
 
   window.dexterDB.getGastos = async (fechaInicio = null, fechaFin = null, comercioId) => {
