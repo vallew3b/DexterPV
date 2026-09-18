@@ -259,6 +259,12 @@ try {
           if (vData) {
             await getBusinessDB().from('variantes').update({ stock: Math.max(0, vData.stock - item.cantidad) }).eq('id', item.variante_id);
           }
+        } else if (item.producto_id) {
+          const { data: vList } = await getBusinessDB().from('variantes').select('id, stock').eq('producto_id', item.producto_id);
+          if (vList && vList.length > 0) {
+            const firstV = vList[0];
+            await getBusinessDB().from('variantes').update({ stock: Math.max(0, firstV.stock - item.cantidad) }).eq('id', firstV.id);
+          }
         }
       }
       return { success: true };

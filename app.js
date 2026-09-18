@@ -2577,7 +2577,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const estadoSelect = document.getElementById('pedidoWebEstadoSelect');
-        if (estadoSelect) estadoSelect.value = pedido.estado || 'pendiente';
+        const helpTextEl = document.getElementById('pedidoWebEstadoHelpText');
+        if (estadoSelect) {
+            estadoSelect.value = pedido.estado || 'pendiente';
+            const isApprovedVal = (val) => val === 'aprobado' || val === 'confirmado';
+            if (helpTextEl) {
+                helpTextEl.style.display = (isApprovedVal(estadoSelect.value) && !pedido.stock_descontado && pedido.estado !== 'confirmado') ? 'flex' : 'none';
+            }
+            if (!estadoSelect.dataset.listenerBound) {
+                estadoSelect.dataset.listenerBound = 'true';
+                estadoSelect.addEventListener('change', (e) => {
+                    const currentP = window.currentPedidosWeb?.find(p => p.id === window.activePedidoWebId);
+                    const yaDescontado = currentP?.stock_descontado === true || currentP?.estado === 'confirmado';
+                    if (helpTextEl) {
+                        helpTextEl.style.display = (isApprovedVal(e.target.value) && !yaDescontado) ? 'flex' : 'none';
+                    }
+                });
+            }
+        }
 
         // Evento toggle para paquetería 'Otra'
         if (paqueteriaSelect && !paqueteriaSelect.dataset.listenerBound) {
@@ -2622,15 +2639,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('pedidoWebTotal').textContent = `$${pedido.total.toFixed(2)}`;
 
+        // Determinar si el stock ya fue descontado previa o actualmente
+        const isStockAlreadyDescontado = pedido.stock_descontado === true || st === 'confirmado';
+
         // Footer buttons
         const footer = document.getElementById('pedidoWebModalFooter');
         if (footer) {
             let extraButtons = '';
-            if (st === 'pendiente' || st === 'pendiente_pago') {
+            if (!isStockAlreadyDescontado) {
                 extraButtons = `
-                    <button class="btn btn-primary" onclick="confirmarPedidoWeb(${pedido.id})" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
+                    <button class="btn btn-primary" id="btnDescontarStockPedidoWeb" onclick="confirmarPedidoWeb(${pedido.id})" style="background-color: var(--primary-emerald); border-color: var(--primary-emerald);">
                         <i class="fa-solid fa-check"></i> Descontar Stock y Procesar Venta
                     </button>
+                `;
+            } else {
+                extraButtons = `
+                    <span style="display: inline-flex; align-items: center; gap: 6px; color: #2e7d32; font-weight: 700; font-size: 13px; padding: 6px 12px; background: rgba(46, 125, 50, 0.12); border: 1px solid rgba(46, 125, 50, 0.3); border-radius: 6px;">
+                        <i class="fa-solid fa-circle-check"></i> Stock Descontado
+                    </span>
                 `;
             }
 
@@ -2650,9 +2676,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('detallesPedidoWebModal').classList.remove('active');
     };
 
+    window.procesarDescuentoStockPedidoWeb = async (pedido) => {
+        if (!pedido) return { success: false, error: 'Pedido no encontrado' };
+
+        const ventasArray = (pedido.detalles_pedido || []).map(item => ({
+            producto_id: item.producto_id || item.product_id,
+            variante_id: item.variante_id || item.variant_id,
+            cantidad: item.cantidad,
+            precio_unitario: Number(item.precio || item.precioUnitario || item.precio_unitario || item.precioVenta || 0)
+        }));
+
+        if (ventasArray.length === 0) {
+            return { success: false, error: 'El pedido no tiene artículos para descontar' };
+        }
+
+        return await window.electronAPI.addVentaMultiple(ventasArray);
+    };
+
     window.guardarCambiosPedidoWeb = async (id) => {
         const targetId = id || window.activePedidoWebId;
         if (!targetId) return;
+
+        const pedido = window.currentPedidosWeb?.find(p => p.id === targetId);
 
         let paqueteria = document.getElementById('pedidoWebPaqueteriaSelect')?.value || 'Correos de México';
         if (paqueteria === 'Otra') {
@@ -2663,17 +2708,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         const numero_rastreo = document.getElementById('pedidoWebTrackingInput')?.value.trim() || null;
         const estado = document.getElementById('pedidoWebEstadoSelect')?.value || 'pendiente';
 
+        const yaDescontado = pedido?.stock_descontado === true || pedido?.estado === 'confirmado';
+        let stockDescontadoEnEstaOperacion = false;
+
+        // Si el estado seleccionado es aprobado o confirmado y el stock NO se ha descontado aún:
+        if ((estado === 'aprobado' || estado === 'confirmado') && !yaDescontado && pedido) {
+            const resVenta = await window.procesarDescuentoStockPedidoWeb(pedido);
+            if (resVenta.success) {
+                stockDescontadoEnEstaOperacion = true;
+                showToast('Pago Aprobado', 'Se descontó automáticamente el stock del inventario y se registró la venta en POS.', 'success');
+            } else {
+                showToast('Aviso', 'Se intentó descontar stock pero ocurrió un error: ' + resVenta.error, 'warning');
+            }
+        }
+
         try {
             const updatePayload = { paqueteria, numero_rastreo, estado };
-            const res = await window.electronAPI.actualizarPedidoWeb(targetId, updatePayload);
+            if (yaDescontado || stockDescontadoEnEstaOperacion) {
+                updatePayload.stock_descontado = true;
+            }
+
+            let res = await window.electronAPI.actualizarPedidoWeb(targetId, updatePayload);
+            if (!res.success && updatePayload.stock_descontado) {
+                delete updatePayload.stock_descontado;
+                res = await window.electronAPI.actualizarPedidoWeb(targetId, updatePayload);
+            }
 
             if (res.success) {
                 showToast('Éxito', 'Pedido actualizado correctamente.', 'success');
-                const pObj = window.currentPedidosWeb?.find(p => p.id === targetId);
-                if (pObj) {
-                    pObj.paqueteria = paqueteria;
-                    pObj.numero_rastreo = numero_rastreo;
-                    pObj.estado = estado;
+                if (pedido) {
+                    pedido.paqueteria = paqueteria;
+                    pedido.numero_rastreo = numero_rastreo;
+                    pedido.estado = estado;
+                    if (yaDescontado || stockDescontadoEnEstaOperacion) {
+                        pedido.stock_descontado = true;
+                    }
                 }
                 closePedidoWebModal();
                 loadPedidosWebTable();
@@ -2686,23 +2755,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     window.confirmarPedidoWeb = async (id) => {
-        if (!confirm('¿Deseas registrar esta venta en el POS y descontar stock?')) return;
-
-        const pedido = window.currentPedidosWeb.find(p => p.id === id);
+        const pedido = window.currentPedidosWeb?.find(p => p.id === id);
         if (!pedido) return;
 
-        const ventasArray = (pedido.detalles_pedido || []).map(item => ({
-            producto_id: item.producto_id || item.product_id,
-            variante_id: item.variante_id || item.variant_id,
-            cantidad: item.cantidad,
-            precio_unitario: Number(item.precio || item.precioUnitario || item.precio_unitario || item.precioVenta || 0)
-        }));
+        if (pedido.stock_descontado || pedido.estado === 'confirmado') {
+            showToast('Aviso', 'El stock de este pedido ya ha sido descontado.', 'info');
+            return;
+        }
+
+        if (!confirm('¿Deseas registrar esta venta en el POS y descontar stock?')) return;
 
         try {
-            const resVenta = await window.electronAPI.addVentaMultiple(ventasArray);
+            const resVenta = await window.procesarDescuentoStockPedidoWeb(pedido);
             if (resVenta.success) {
-                const resPedido = await window.electronAPI.actualizarPedidoWeb(id, { estado: 'confirmado' });
+                const nuevoEstado = (pedido.estado && pedido.estado !== 'pendiente' && pedido.estado !== 'pendiente_pago')
+                    ? pedido.estado
+                    : 'confirmado';
+
+                let resPedido = await window.electronAPI.actualizarPedidoWeb(id, { estado: nuevoEstado, stock_descontado: true });
+                if (!resPedido.success) {
+                    resPedido = await window.electronAPI.actualizarPedidoWeb(id, { estado: nuevoEstado });
+                }
+
                 if (resPedido.success) {
+                    pedido.stock_descontado = true;
+                    pedido.estado = nuevoEstado;
                     showToast('Confirmado', 'Pedido procesado y stock descontado.', 'success');
                     closePedidoWebModal();
                     loadPedidosWebTable();

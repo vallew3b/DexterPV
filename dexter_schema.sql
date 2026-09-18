@@ -155,6 +155,7 @@ ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS numero_rastreo VARCHAR(1
 ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS metodo_pago VARCHAR(100) DEFAULT 'WhatsApp / Por Acordar';
 ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS folio_pago VARCHAR(100);
 ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS fecha_pago TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE public.pedidos_web ADD COLUMN IF NOT EXISTS stock_descontado BOOLEAN DEFAULT FALSE;
 
 -- Quitar el candado de seguridad (RLS) para que la tienda (usuario anónimo) pueda guardar pedidos libremente
 ALTER TABLE public.pedidos_web DISABLE ROW LEVEL SECURITY;
