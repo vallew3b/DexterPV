@@ -2430,7 +2430,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Filtro por Estado
             if (selectedEstado) {
                 const st = (p.estado || '').toLowerCase();
-                if (!st.includes(selectedEstado)) return false;
+                if (selectedEstado === 'confirmado' || selectedEstado === 'aprobado' || selectedEstado === 'aprobado_confirmado') {
+                    if (!st.includes('confirmado') && !st.includes('aprobado') && !st.includes('completado')) return false;
+                } else if (selectedEstado === 'pendiente') {
+                    if (!st.includes('pendiente')) return false;
+                } else if (selectedEstado === 'enviado') {
+                    if (!st.includes('enviado')) return false;
+                } else if (selectedEstado === 'anulado' || selectedEstado === 'denegado') {
+                    if (!st.includes('anulado') && !st.includes('denegado') && !st.includes('cancelado')) return false;
+                } else {
+                    if (!st.includes(selectedEstado)) return false;
+                }
             }
 
             // Filtro por Búsqueda (nombre, número de guía, id, email, dirección)
@@ -2450,7 +2460,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (counterEl) {
             let infoFiltro = [];
             if (selectedFecha) infoFiltro.push(`Fecha: ${selectedFecha}`);
-            if (selectedEstado) infoFiltro.push(`Estado: ${selectedEstado.toUpperCase()}`);
+            if (selectedEstado) {
+                let textEst = selectedEstado.toUpperCase();
+                if (selectedEstado === 'confirmado' || selectedEstado === 'aprobado' || selectedEstado === 'aprobado_confirmado') {
+                    textEst = 'APROBADO / CONFIRMADO';
+                }
+                infoFiltro.push(`Estado: ${textEst}`);
+            }
             if (searchQuery) infoFiltro.push(`Búsqueda: "${searchQuery}"`);
 
             const filtroStr = infoFiltro.length > 0 ? ` (${infoFiltro.join(', ')})` : '';
