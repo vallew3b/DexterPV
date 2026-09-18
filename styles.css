@@ -1031,7 +1031,8 @@ body {
     z-index: 1000;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .modal.active {
@@ -1041,8 +1042,13 @@ body {
 .modal-content {
     width: 100%;
     max-width: 580px;
-    padding: 32px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
     position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
     animation: modalScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -1050,7 +1056,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
 }
 
 .modal-title {
@@ -1069,6 +1076,19 @@ body {
 
 .modal-close:hover {
     color: var(--danger);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 4px;
+}
+
+.modal-footer {
+    flex-shrink: 0;
+    margin-top: 16px;
+    padding-top: 12px;
 }
 
 /* Matriz de Variantes */

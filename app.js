@@ -2494,10 +2494,69 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (trackingInput) trackingInput.value = pedido.numero_rastreo || '';
 
         const paqueteriaSelect = document.getElementById('pedidoWebPaqueteriaSelect');
-        if (paqueteriaSelect) paqueteriaSelect.value = pedido.paqueteria || 'Correos de México';
+        const paqueteriaOtraInput = document.getElementById('pedidoWebPaqueteriaOtraInput');
+        
+        // Extraer paquetería de la base de datos (o método de envío asignado)
+        const rawPaqueteria = (
+            pedido.paqueteria ||
+            pedido.metodo_envio ||
+            pedido.envio_paqueteria ||
+            pedido.shipping_method ||
+            pedido.envio ||
+            ''
+        ).toString().trim();
+
+        if (paqueteriaSelect) {
+            // Eliminar opciones dinámicas personalizadas de aperturas previas
+            Array.from(paqueteriaSelect.options).forEach(opt => {
+                if (opt.dataset.dynamic === 'true') opt.remove();
+            });
+
+            if (rawPaqueteria) {
+                // Buscar si coincide con alguna opción estándar (insensible a mayúsculas)
+                let foundOpt = Array.from(paqueteriaSelect.options).find(
+                    opt => opt.value.toLowerCase() === rawPaqueteria.toLowerCase() || opt.text.toLowerCase() === rawPaqueteria.toLowerCase()
+                );
+
+                if (foundOpt) {
+                    paqueteriaSelect.value = foundOpt.value;
+                    if (paqueteriaOtraInput) {
+                        paqueteriaOtraInput.style.display = (foundOpt.value === 'Otra') ? 'block' : 'none';
+                        paqueteriaOtraInput.value = (foundOpt.value === 'Otra') ? rawPaqueteria : '';
+                    }
+                } else {
+                    // Si el nombre viene de la DB y no está en el selector, creamos la opción automáticamente
+                    const customOpt = document.createElement('option');
+                    customOpt.value = rawPaqueteria;
+                    customOpt.textContent = rawPaqueteria;
+                    customOpt.dataset.dynamic = 'true';
+                    paqueteriaSelect.appendChild(customOpt);
+                    paqueteriaSelect.value = rawPaqueteria;
+                    if (paqueteriaOtraInput) paqueteriaOtraInput.style.display = 'none';
+                }
+            } else {
+                paqueteriaSelect.value = 'Correos de México';
+                if (paqueteriaOtraInput) {
+                    paqueteriaOtraInput.style.display = 'none';
+                    paqueteriaOtraInput.value = '';
+                }
+            }
+        }
 
         const estadoSelect = document.getElementById('pedidoWebEstadoSelect');
         if (estadoSelect) estadoSelect.value = pedido.estado || 'pendiente';
+
+        // Evento toggle para paquetería 'Otra'
+        if (paqueteriaSelect && !paqueteriaSelect.dataset.listenerBound) {
+            paqueteriaSelect.dataset.listenerBound = 'true';
+            paqueteriaSelect.addEventListener('change', (e) => {
+                const otraInp = document.getElementById('pedidoWebPaqueteriaOtraInput');
+                if (otraInp) {
+                    otraInp.style.display = e.target.value === 'Otra' ? 'block' : 'none';
+                    if (e.target.value === 'Otra') otraInp.focus();
+                }
+            });
+        }
 
         // Lista de Artículos
         const list = document.getElementById('pedidoWebArticulosList');
@@ -2562,7 +2621,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const targetId = id || window.activePedidoWebId;
         if (!targetId) return;
 
-        const paqueteria = document.getElementById('pedidoWebPaqueteriaSelect')?.value || 'Correos de México';
+        let paqueteria = document.getElementById('pedidoWebPaqueteriaSelect')?.value || 'Correos de México';
+        if (paqueteria === 'Otra') {
+            const customVal = document.getElementById('pedidoWebPaqueteriaOtraInput')?.value.trim();
+            if (customVal) paqueteria = customVal;
+        }
+
         const numero_rastreo = document.getElementById('pedidoWebTrackingInput')?.value.trim() || null;
         const estado = document.getElementById('pedidoWebEstadoSelect')?.value || 'pendiente';
 
@@ -2572,6 +2636,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (res.success) {
                 showToast('Éxito', 'Pedido actualizado correctamente.', 'success');
+                const pObj = window.currentPedidosWeb?.find(p => p.id === targetId);
+                if (pObj) {
+                    pObj.paqueteria = paqueteria;
+                    pObj.numero_rastreo = numero_rastreo;
+                    pObj.estado = estado;
+                }
                 closePedidoWebModal();
                 loadPedidosWebTable();
             } else {
