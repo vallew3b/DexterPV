@@ -1225,11 +1225,12 @@ body {
     to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Prevent global horizontal scroll overflow on mobile */
+/* Prevent global horizontal scroll overflow on mobile web browsers */
 html, body {
     overflow-x: hidden !important;
     max-width: 100vw !important;
     width: 100% !important;
+    position: relative !important;
 }
 
 .app-layout {
@@ -1253,6 +1254,7 @@ html, body {
 .glass-panel {
     max-width: 100% !important;
     box-sizing: border-box !important;
+    overflow-x: hidden !important;
 }
 
 .table-container {
@@ -1261,7 +1263,8 @@ html, body {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     display: block !important;
-    border-radius: 8px;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
 }
 
 @media (max-width: 1024px) {
@@ -1360,7 +1363,7 @@ html, body {
 
 @media (max-width: 768px) {
     .main-content {
-        padding: 10px 8px !important;
+        padding: 10px 6px !important;
     }
 
     .metrics-grid {
@@ -1375,8 +1378,11 @@ html, body {
     }
 
     .glass-panel {
-        padding: 14px 10px !important;
+        padding: 12px 10px !important;
         border-radius: 12px !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
     }
 
     .productos-grid {
@@ -1439,7 +1445,7 @@ html, body {
     }
 
     .premium-table {
-        min-width: 550px !important;
+        min-width: 520px !important;
     }
 
     .premium-table th, .premium-table td {
