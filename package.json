@@ -6,11 +6,17 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "sync:android": "powershell -Command \"Copy-Item index.html, dashboard.html, app.js, styles.css, supabaseClient.js -Destination www\\ -Force; npx cap sync android\"",
+    "build:apk": "powershell -Command \"$env:JAVA_HOME='C:\\Users\\Ronal\\AppData\\Local\\JDK17\\jdk-17.0.10+7'; $env:ANDROID_HOME='C:\\Users\\Ronal\\AppData\\Local\\AndroidSDK'; npm run sync:android; cd android; .\\gradlew assembleDebug; Copy-Item app\\build\\outputs\\apk\\debug\\app-debug.apk -Destination ..\\DexterPV.apk -Force\"",
+    "install:apk": "powershell -Command \"$env:ANDROID_HOME='C:\\Users\\Ronal\\AppData\\Local\\AndroidSDK'; & \\\"$env:ANDROID_HOME\\platform-tools\\adb.exe\\\" install -r DexterPV.apk\""
   },
   "author": "Ronal",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/cli": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
     "pg": "^8.11.3"
   },
   "devDependencies": {
