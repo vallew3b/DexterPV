@@ -1086,6 +1086,14 @@ body {
     display: flex;
 }
 
+/* En escritorio el modal solo ocupa el área de contenido (no tapa la barra café) */
+@media (min-width: 901px) {
+    .modal {
+        left: 260px;
+        width: calc(100% - 260px);
+    }
+}
+
 .modal-content {
     width: 100%;
     max-width: 580px;
@@ -1494,6 +1502,47 @@ html, body {
         padding: 16px !important;
         border-radius: 14px !important;
     }
+
+    #variantSelectorModal .premium-table {
+        min-width: 0 !important;
+    }
+
+    #variantSelectorModal .premium-table th,
+    #variantSelectorModal .premium-table td {
+        padding: 10px 6px !important;
+        white-space: normal !important;
+    }
+}
+
+/* Selector de variantes: ajustado al tamaño de pantalla */
+#variantSelectorModal .modal-content {
+    width: 100%;
+    max-width: 720px;
+    min-width: 0;
+    margin: 0 auto;
+}
+
+#variantSelectorModal .modal-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding-right: 12px;
+}
+
+#variantSelectorModal .table-container {
+    flex: 1;
+    min-height: 0;
+    max-width: 100%;
+    overflow: auto;
+}
+
+#variantSelectorModal .premium-table {
+    table-layout: auto;
+    min-width: 0;
+}
+
+#variantSelectorModal .premium-table th,
+#variantSelectorModal .premium-table td {
+    padding: 12px 14px;
 }
 
 /* Quitar flechas de los input de tipo número */
