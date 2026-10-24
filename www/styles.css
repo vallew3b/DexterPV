@@ -1075,7 +1075,7 @@ body {
     height: 100%;
     background: rgba(8, 11, 17, 0.7);
     backdrop-filter: blur(8px);
-    z-index: 1000;
+    z-index: 10001;
     align-items: center;
     justify-content: center;
     padding: 16px;
@@ -1084,6 +1084,10 @@ body {
 
 .modal.active {
     display: flex;
+}
+
+.modal[style*="z-index"] {
+    z-index: 10002 !important;
 }
 
 .modal-content {

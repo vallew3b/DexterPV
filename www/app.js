@@ -158,6 +158,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Funciones de Carga de Datos y Secciones
     function navigateToSection(sectionId) {
+        const variantModal = document.getElementById('variantSelectorModal');
+        if (variantModal) variantModal.classList.remove('active');
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         const target = document.getElementById(sectionId);
         if (target) target.classList.add('active');
